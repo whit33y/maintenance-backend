@@ -1,0 +1,37 @@
+CREATE TABLE users (
+  id CHAR(36) PRIMARY KEY,
+  name VARCHAR(120) NOT NULL,
+  email VARCHAR(180) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE maintenance (
+  id CHAR(36) PRIMARY KEY,
+  title VARCHAR(160) NOT NULL,
+  category_id CHAR(36),
+  start_date DATE NOT NULL,
+  repeat_interval VARCHAR(16),
+  reminder_days_before INT DEFAULT 7,
+  completed BOOLEAN DEFAULT FALSE,
+  FOREIGN KEY (category_id) REFERENCES categories(id)
+);
+
+CREATE TABLE categories (
+  id CHAR(36) PRIMARY KEY,
+  name VARCHAR(80) NOT NULL,
+  isPrivate BOOLEAN NOT NULL DEFAULT FALSE,
+  user_id CHAR(36) NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+INSERT INTO users (id, name, email, password_hash)
+VALUES
+    (UUID(), 'Jan Kowalski', 'jan.kowalski@example.com', '$2a$10$Q9W9T8Y3n1a8v2DqTq9ZfO/4J3zF8E6eKk5M3oG1U9xJkL5Vf5QO'), 
+    (UUID(), 'Anna Nowak', 'anna.nowak@example.com', '$2a$10$Kq2F3t7hR2wV6Xc4pS7zVu9E5h6Zx8QwT0l5L9jO2f3kC1nD5jNqW');
+
+
+CREATE USER 'appuser'@'localhost' IDENTIFIED WITH caching_sha2_password BY 'appsecret';
+GRANT ALL PRIVILEGES ON maintanceDB.* TO 'appuser'@'localhost';
+FLUSH PRIVILEGES;
+
