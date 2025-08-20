@@ -93,7 +93,7 @@ export const updateMaintenance = async (req, res, next) => {
             `UPDATE maintenance 
              SET title = ?, category_id = ?, start_date = ?, repeat_interval = ?, reminder_days_before = ?, completed = ?
              WHERE id = ?`,
-            [title, category, startDate, repeatInterval, reminderDaysBefore, completed, id]
+            [title, categoryId, startDate, repeatInterval, reminderDaysBefore, completed, id]
         );
 
         if (result.affectedRows === 0) {

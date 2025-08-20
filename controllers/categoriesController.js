@@ -75,6 +75,45 @@ export const postCategory = async (req, res, next) => {
     }
 }
 
+//@desc UPDATE category
+//@route PUT/api/categories/:id
+export const updateCategory = async (req, res, next) => {
+    const { id } = req.params;
+    const { name, is_private, user_id } = req.body;
+    if (!name || !user_id || is_private == null) {
+        const error = new Error('Please include all information.');
+        error.status = 400;
+        return next(error);
+    }
+    try {
+        const [result] = await pool.query(
+            `UPDATE categories 
+             SET name = ?, is_private = ?, user_id = ?
+             WHERE id = ?`,
+            [name, is_private, user_id, id]
+        );
+
+        if (result.affectedRows === 0) {
+            const error = new Error('Category not found.');
+            error.status = 404;
+            return next(error);
+        }
+
+        res.status(200).json({
+            id,
+            name,
+            is_private,
+            user_id
+        });
+
+    } catch (err) {
+        console.error(err);
+        const error = new Error('Something went wrong while updating category.');
+        error.status = 500;
+        return next(error);
+    }
+}
+
 //@desc DELETE category
 //@route DELETE/api/categories/:id
 export const deleteCategory = async (req, res, next) => {
