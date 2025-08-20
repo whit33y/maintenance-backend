@@ -44,9 +44,9 @@ export const getSingleCategory = async (req, res, next) => {
 //@desc POST category
 //@route POST/api/categories
 export const postCategory = async (req, res, next) => {
-    const { name, isPrivate, user_id } = req.body;
+    const { name, is_private, user_id } = req.body;
     console.log(req.body);
-    if (!name || user_id == null || isPrivate == null) {
+    if (!name || user_id == null || is_private == null) {
         const error = new Error('Please include all information.');
         error.status = 400;
         return next(error);
@@ -56,15 +56,15 @@ export const postCategory = async (req, res, next) => {
 
         const [result] = await pool.query(
             `INSERT INTO categories 
-            (id, name, isPrivate, user_id) 
+            (id, name, is_private, user_id) 
             VALUES (?, ?, ?, ?)`,
-            [id, name, isPrivate, user_id]
+            [id, name, is_private, user_id]
         );
 
         res.status(201).json({
             id,
             name,
-            isPrivate,
+            is_private,
             user_id
         });
     } catch (err) {
