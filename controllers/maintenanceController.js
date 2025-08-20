@@ -42,8 +42,8 @@ export const getSingleMaintenance = async (req, res, next) => {
 //@desc Post maintenance 
 //@route POST/api/maintenance
 export const postMaintenance = async (req, res, next) => {
-    const { title, category, startDate, repeatInterval, reminderDaysBefore } = req.body;
-    if (!title || !category || !startDate || !repeatInterval || reminderDaysBefore == null) {
+    const { title, categoryId, startDate, repeatInterval, reminderDaysBefore } = req.body;
+    if (!title || !categoryId || !startDate || !repeatInterval || reminderDaysBefore == null) {
         const error = new Error('Please include all information.');
         error.status = 400;
         return next(error);
@@ -56,7 +56,7 @@ export const postMaintenance = async (req, res, next) => {
             `INSERT INTO maintenance 
             (id, title, category_id, start_date, repeat_interval, reminder_days_before, completed) 
             VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [id, title, category, startDate, repeatInterval, reminderDaysBefore, completed]
+            [id, title, categoryId, startDate, repeatInterval, reminderDaysBefore, completed]
         );
 
         res.status(201).json({
@@ -80,9 +80,9 @@ export const postMaintenance = async (req, res, next) => {
 //@route PUT/api/maintenance/:id
 export const updateMaintenance = async (req, res, next) => {
     const { id } = req.params;
-    const { title, category, startDate, repeatInterval, reminderDaysBefore, completed } = req.body;
+    const { title, categoryId, startDate, repeatInterval, reminderDaysBefore, completed } = req.body;
 
-    if (!title || !category || !startDate || !repeatInterval || reminderDaysBefore == null || completed == null) {
+    if (!title || !categoryId || !startDate || !repeatInterval || reminderDaysBefore == null || completed == null) {
         const error = new Error('Please include all information.');
         error.status = 400;
         return next(error);
@@ -105,7 +105,7 @@ export const updateMaintenance = async (req, res, next) => {
         res.status(200).json({
             id,
             title,
-            category,
+            categoryId,
             startDate,
             repeatInterval,
             reminderDaysBefore,
