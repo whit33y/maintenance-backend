@@ -42,8 +42,8 @@ export const getSingleMaintenance = async (req, res, next) => {
 //@desc Post maintenance 
 //@route POST/api/maintenance
 export const postMaintenance = async (req, res, next) => {
-    const { title, categoryId, startDate, repeatInterval, reminderDaysBefore } = req.body;
-    if (!title || !categoryId || !startDate || !repeatInterval || reminderDaysBefore == null) {
+    const { title, category_id, start_date, repeat_interval, reminder_days_before } = req.body;
+    if (!title || !category_id || !start_date || !repeat_interval || reminder_days_before == null) {
         const error = new Error('Please include all information.');
         error.status = 400;
         return next(error);
@@ -56,16 +56,16 @@ export const postMaintenance = async (req, res, next) => {
             `INSERT INTO maintenance 
             (id, title, category_id, start_date, repeat_interval, reminder_days_before, completed) 
             VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [id, title, categoryId, startDate, repeatInterval, reminderDaysBefore, completed]
+            [id, title, category_id, start_date, repeat_interval, reminder_days_before, completed]
         );
 
         res.status(201).json({
             id,
             title,
-            category,
-            startDate,
-            repeatInterval,
-            reminderDaysBefore,
+            category_id,
+            start_date,
+            repeat_interval,
+            reminder_days_before,
             completed
         });
     } catch (err) {
@@ -80,9 +80,9 @@ export const postMaintenance = async (req, res, next) => {
 //@route PUT/api/maintenance/:id
 export const updateMaintenance = async (req, res, next) => {
     const { id } = req.params;
-    const { title, categoryId, startDate, repeatInterval, reminderDaysBefore, completed } = req.body;
+    const { title, category_id, start_date, repeat_interval, reminder_days_before, completed } = req.body;
 
-    if (!title || !categoryId || !startDate || !repeatInterval || reminderDaysBefore == null || completed == null) {
+    if (!title || !category_id || !start_date || !repeat_interval || reminder_days_before == null || completed == null) {
         const error = new Error('Please include all information.');
         error.status = 400;
         return next(error);
@@ -93,7 +93,7 @@ export const updateMaintenance = async (req, res, next) => {
             `UPDATE maintenance 
              SET title = ?, category_id = ?, start_date = ?, repeat_interval = ?, reminder_days_before = ?, completed = ?
              WHERE id = ?`,
-            [title, categoryId, startDate, repeatInterval, reminderDaysBefore, completed, id]
+            [title, category_id, start_date, repeat_interval, reminder_days_before, completed, id]
         );
 
         if (result.affectedRows === 0) {
@@ -105,10 +105,10 @@ export const updateMaintenance = async (req, res, next) => {
         res.status(200).json({
             id,
             title,
-            categoryId,
-            startDate,
-            repeatInterval,
-            reminderDaysBefore,
+            category_id,
+            start_date,
+            repeat_interval,
+            reminder_days_before,
             completed
         });
     } catch (err) {

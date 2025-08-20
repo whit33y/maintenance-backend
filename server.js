@@ -20,7 +20,11 @@ const PORT = process.env.PORT || 3000;
 //Routes
 app.use('/api/maintenance', maintenance);
 app.use('/api/categories', categories);
+app.use((err, req, res, next) => {
+    console.error(err.message);
+    res.status(err.status || 500).json({ message: err.message || 'Server error' });
+});
 
 app.listen(PORT, () => {
-    console.log(`Serwer działa na http://localhost:${PORT}`);
+    console.log(`Server working on http://localhost:${PORT}`);
 });
