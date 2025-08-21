@@ -4,7 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 //@route GET/api/maintenance
 export const getMaintenance = async (req, res, next) => {
     try {
-        const [rows] = await pool.query("SELECT * FROM maintenance");
+        const userId = req.user.id;
+        const [rows] = await pool.query("SELECT * FROM maintenance WHERE user_id = ?", [userId]);
         res.status(200).json(rows);
     } catch (err) {
         console.error(err);
@@ -19,9 +20,10 @@ export const getMaintenance = async (req, res, next) => {
 export const getSingleMaintenance = async (req, res, next) => {
     const { id } = req.params;
     try {
+        const userId = req.user.id;
         const [rows] = await pool.query(
-            "SELECT * FROM maintenance WHERE id = ?",
-            [id]
+            "SELECT * FROM maintenance WHERE id = ? AND user_id = ?",
+            [id, userId]
         );
 
         if (rows.length === 0) {
@@ -51,12 +53,12 @@ export const postMaintenance = async (req, res, next) => {
     try {
         const id = uuidv4();
         const completed = false;
-
+        const userId = req.user.id;
         const [result] = await pool.query(
             `INSERT INTO maintenance 
-            (id, title, category_id, start_date, repeat_interval, reminder_days_before, completed) 
-            VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [id, title, category_id, start_date, repeat_interval, reminder_days_before, completed]
+            (id, title, category_id, start_date, repeat_interval, reminder_days_before, completed, user_id) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [id, title, category_id, start_date, repeat_interval, reminder_days_before, completed, userId]
         );
 
         res.status(201).json({
@@ -89,11 +91,12 @@ export const updateMaintenance = async (req, res, next) => {
     }
 
     try {
+        const userId = req.user.id;
         const [result] = await pool.query(
             `UPDATE maintenance 
              SET title = ?, category_id = ?, start_date = ?, repeat_interval = ?, reminder_days_before = ?, completed = ?
-             WHERE id = ?`,
-            [title, category_id, start_date, repeat_interval, reminder_days_before, completed, id]
+             WHERE id = ? AND user_id = ?`,
+            [title, category_id, start_date, repeat_interval, reminder_days_before, completed, id, userId]
         );
 
         if (result.affectedRows === 0) {
@@ -131,14 +134,15 @@ export const deleteMaintenance = async (req, res, next) => {
     }
 
     try {
-        const [rows] = await pool.query(`SELECT * FROM maintenance WHERE id = ?`, [id]);
+        const userId = req.user.id;
+        const [rows] = await pool.query(`SELECT * FROM maintenance WHERE id = ? AND user_id = ?`, [id, userId]);
         if (rows.length === 0) {
             const error = new Error('Maintenance not found.');
             error.status = 404;
             return next(error);
         }
 
-        await pool.query(`DELETE FROM maintenance WHERE id = ?`, [id]);
+        await pool.query(`DELETE FROM maintenance WHERE id = ? AND user_id = ?`, [id, userId]);
 
         res.status(200).json({
             message: 'Maintenance deleted successfully',
