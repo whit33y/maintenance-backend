@@ -1,20 +1,21 @@
 import express from 'express';
 import { deleteMaintenance, getMaintenance, getSingleMaintenance, postMaintenance, updateMaintenance } from '../controllers/maintenanceController.js';
+import { authenticateToken } from '../controllers/authController.js';
 const router = express.Router();
 
 //get all maintenances
-router.get('/', getMaintenance);
+router.get('/', authenticateToken, getMaintenance);
 
 //get single maintenance
-router.get('/:id', getSingleMaintenance)
+router.get('/:id', authenticateToken, getSingleMaintenance)
 
 //post maintenance
-router.post('/', postMaintenance)
+router.post('/', authenticateToken, postMaintenance)
 
 //put maintenance
-router.put('/:id', updateMaintenance)
+router.put('/:id', authenticateToken, updateMaintenance)
 
 //delete maintenance
-router.delete('/:id', deleteMaintenance)
+router.delete('/:id', authenticateToken, deleteMaintenance)
 
 export default router;
