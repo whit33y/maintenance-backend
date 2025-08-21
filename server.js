@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import maintenance from "./routes/maintenance.js";
 import categories from "./routes/categories.js";
+import auth from "./routes/auth.js";
 import cors from 'cors';
 
 dotenv.config();
@@ -20,6 +21,7 @@ const PORT = process.env.PORT || 3000;
 //Routes
 app.use('/api/maintenance', maintenance);
 app.use('/api/categories', categories);
+app.use('/api/auth', auth);
 app.use((err, req, res, next) => {
     console.error(err.message);
     res.status(err.status || 500).json({ message: err.message || 'Server error' });
