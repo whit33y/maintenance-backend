@@ -25,7 +25,7 @@ DROP TABLE IF EXISTS `categories`;
 CREATE TABLE `categories` (
   `id` char(36) NOT NULL,
   `name` varchar(80) NOT NULL,
-  `isPrivate` tinyint(1) NOT NULL DEFAULT '0',
+  `is_private` tinyint(1) NOT NULL DEFAULT '0',
   `user_id` char(36) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
@@ -39,7 +39,7 @@ CREATE TABLE `categories` (
 
 LOCK TABLES `categories` WRITE;
 /*!40000 ALTER TABLE `categories` DISABLE KEYS */;
-INSERT INTO `categories` VALUES ('107ffcff-762d-4367-afaf-2ffaeee7ead0','Auto',0,'13bd193e-7ce9-11f0-8098-cdbd4d4884be'),('22a739fb-92c0-484f-87d1-b5a5e255188e','Ogród',0,'83bd1664-7ce9-11f0-8098-cdbd4d4884be'),('bf3529fe-a521-4543-bf99-dc2eed50602f','Dom',0,'13bd193e-7ce9-11f0-8098-cdbd4d4884be');
+INSERT INTO `categories` VALUES ('107ffcff-762d-4367-afaf-2ffaeee7ead0','Auto',0,'13bd193e-7ce9-11f0-8098-cdbd4d4884be'),('22a739fb-92c0-484f-87d1-b5a5e255188e','Ogród',0,'83bd1664-7ce9-11f0-8098-cdbd4d4884be'),('bf3529fe-a521-4543-bf99-dc2eed50602f','Dom',0,'13bd193e-7ce9-11f0-8098-cdbd4d4884be'),('eded2b99-add1-4f1d-bb49-7c1368568fc3','Rachunki',0,'13bd193e-7ce9-11f0-8098-cdbd4d4884be');
 /*!40000 ALTER TABLE `categories` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -58,8 +58,11 @@ CREATE TABLE `maintenance` (
   `repeat_interval` varchar(16) DEFAULT NULL,
   `reminder_days_before` int DEFAULT '7',
   `completed` tinyint(1) DEFAULT '0',
+  `user_id` char(36) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `category_id` (`category_id`),
+  KEY `fk_maintenance_user` (`user_id`),
+  CONSTRAINT `fk_maintenance_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `maintenance_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -70,7 +73,7 @@ CREATE TABLE `maintenance` (
 
 LOCK TABLES `maintenance` WRITE;
 /*!40000 ALTER TABLE `maintenance` DISABLE KEYS */;
-INSERT INTO `maintenance` VALUES ('bda2c6e6-79b8-43d8-8a82-22b3ec88d947','Wymiana filtra oleju','107ffcff-762d-4367-afaf-2ffaeee7ead0','2025-08-20','6 months',7,0),('fb4e6975-b79b-4f39-8dd9-3b7ef645fd51','Przegląd pieca','bf3529fe-a521-4543-bf99-dc2eed50602f','2025-08-20','12 months',14,0);
+INSERT INTO `maintenance` VALUES ('bda2c6e6-79b8-43d8-8a82-22b3ec88d947','Wymiana filtra oleju','107ffcff-762d-4367-afaf-2ffaeee7ead0','2025-08-20','6 months',7,0,'13bd193e-7ce9-11f0-8098-cdbd4d4884be'),('fb4e6975-b79b-4f39-8dd9-3b7ef645fd51','Przegląd pieca','bf3529fe-a521-4543-bf99-dc2eed50602f','2025-08-20','12 months',14,0,'13bd193e-7ce9-11f0-8098-cdbd4d4884be');
 /*!40000 ALTER TABLE `maintenance` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -111,4 +114,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-08-19 12:48:11
+-- Dump completed on 2025-08-21 14:07:25
