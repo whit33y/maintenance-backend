@@ -15,6 +15,22 @@ export const getMaintenance = async (req, res, next) => {
     }
 };
 
+//@desc Get all upcoming maintenance
+//@route GET/api/maintenance
+export const getUpcomingMaintenance = async (req, res, next) => {
+    const { days } = req.params;
+    try {
+        const userId = req.user.id;
+    }
+    catch (err) {
+        console.error(err);
+        const error = new Error('Something went wrong.');
+        error.status = 500;
+        return next(error);
+    }
+}
+
+
 //@desc Get maintenance by id
 //@route GET/api/maintenance/:id
 export const getSingleMaintenance = async (req, res, next) => {
