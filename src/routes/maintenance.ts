@@ -1,6 +1,6 @@
 import express from 'express';
-import { deleteMaintenance, getMaintenance, getSingleMaintenance, postMaintenance, updateMaintenance } from '../controllers/maintenanceController.js';
-import { authenticateToken } from "../middleware/authMiddleware.js";
+import { deleteMaintenance, getMaintenance, getSingleMaintenance, postMaintenance, updateMaintenance } from '../controllers/maintenanceController';
+import { authenticateToken } from "../middleware/authMiddleware";
 const router = express.Router();
 
 //get all maintenances
