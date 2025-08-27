@@ -173,7 +173,7 @@ export const deleteCategory = async (
       return next(error);
     }
 
-    await pool.query<any[]>(`DELETE FROM categories WHERE id = ?`, [id]);
+    await pool.query(`DELETE FROM categories WHERE id = ?`, [id]);
 
     res.status(200).json({
       message: "Category deleted successfully",
