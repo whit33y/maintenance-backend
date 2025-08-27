@@ -3,8 +3,8 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { v4 } from "uuid";
 import { NextFunction, Request, Response } from "express";
+import { env } from "../config/env";
 
-const JWT_SECRET = process.env.JWT_SECRET!;
 
 interface AppError extends Error {
   status?: number;
@@ -98,7 +98,7 @@ export const login = async (
 
     const token = jwt.sign(
       { id: user.id, email: user.email, name: user.name },
-      JWT_SECRET,
+      env.JWT_SECRET,
       { expiresIn: "168h" }
     );
     res.json({
