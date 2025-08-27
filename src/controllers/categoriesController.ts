@@ -1,10 +1,7 @@
 import { pool } from "../database";
 import { v4 } from "uuid";
 import { NextFunction, Request, Response } from "express";
-
-interface AppError extends Error {
-  status?: number;
-}
+import { AppError } from "../utils/AppError";
 
 interface Category {
   id: string;
@@ -25,9 +22,7 @@ export const getCategories = async (
     const categories = rows as Category[];
     res.status(200).json(categories);
   } catch (err) {
-    const error: AppError = new Error("Something went wrong.");
-    error.status = 404;
-    return next(error);
+    return next(new AppError("Something went wrong.", 404));
   }
 };
 
@@ -47,16 +42,12 @@ export const getSingleCategory = async (
     const category = rows as Category[];
 
     if (category.length === 0) {
-      const error: AppError = new Error("Category not found.");
-      error.status = 404;
-      return next(error);
+      return next(new AppError("Category not found.", 404));
     }
 
     res.status(200).json(category[0]);
   } catch (err) {
-    const error: AppError = new Error("Something went wrong.");
-    error.status = 500;
-    return next(error);
+    return next(new AppError("Something went wrong.", 500));
   }
 };
 
@@ -70,9 +61,7 @@ export const postCategory = async (
   const { name, is_private, user_id } = req.body;
   console.log(req.body);
   if (!name || user_id == null || is_private == null) {
-    const error: AppError = new Error("Please include all information.");
-    error.status = 400;
-    return next(error);
+    return next(new AppError("Please include all information.", 400));
   }
   try {
     const id = v4();
@@ -91,12 +80,9 @@ export const postCategory = async (
       user_id,
     });
   } catch (err) {
-    console.error(err);
-    const error: AppError = new Error(
-      "Something went wrong while creating category."
+    return next(
+      new AppError("Something went wrong while creating category.", 500)
     );
-    error.status = 500;
-    return next(error);
   }
 };
 
@@ -110,9 +96,7 @@ export const updateCategory = async (
   const { id } = req.params;
   const { name, is_private, user_id } = req.body;
   if (!name || !user_id || is_private == null) {
-    const error: AppError = new Error("Please include all information.");
-    error.status = 400;
-    return next(error);
+    return next(new AppError("Please include all information.", 400));
   }
   try {
     const [rows] = await pool.query(
@@ -125,9 +109,7 @@ export const updateCategory = async (
     const category = rows as Category[];
 
     if (category.length === 0) {
-      const error: AppError = new Error("Category not found.");
-      error.status = 404;
-      return next(error);
+      return next(new AppError("Category not found.", 404));
     }
 
     res.status(200).json({
@@ -137,12 +119,9 @@ export const updateCategory = async (
       user_id,
     });
   } catch (err) {
-    console.error(err);
-    const error: AppError = new Error(
-      "Something went wrong while updating category."
+    return next(
+      new AppError("Something went wrong while updating category.", 500)
     );
-    error.status = 500;
-    return next(error);
   }
 };
 
@@ -156,9 +135,7 @@ export const deleteCategory = async (
   const { id } = req.params;
 
   if (!id) {
-    const error: AppError = new Error("Please pass necessary information.");
-    error.status = 400;
-    return next(error);
+    return next(new AppError("Please pass necessary information.", 400));
   }
 
   try {
@@ -168,9 +145,7 @@ export const deleteCategory = async (
 
     const category = rows as Category[];
     if (category.length === 0) {
-      const error: AppError = new Error("Category not found.");
-      error.status = 404;
-      return next(error);
+      return next(new AppError("Category not found.", 404));
     }
 
     await pool.query(`DELETE FROM categories WHERE id = ?`, [id]);
@@ -180,10 +155,8 @@ export const deleteCategory = async (
       category: category[0],
     });
   } catch (err) {
-    const error: AppError = new Error(
-      "Something went wrong while deleting category."
+    return next(
+      new AppError("Something went wrong while deleting category.", 500)
     );
-    error.status = 500;
-    return next(error);
   }
 };
