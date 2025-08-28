@@ -1,51 +1,47 @@
-import { pool } from "../database";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { v4 } from "uuid";
 import { NextFunction, Request, Response } from "express";
 import { env } from "../config/env";
 import { AppError } from "../utils/AppError";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  password_hash: string;
-}
+import { prisma } from "../config/prisma";
+import { RegisterBody, LoginBody } from "../types/auth-interface";
 
 export const register = async (
-  req: Request,
+  req: Request<{}, {}, RegisterBody>,
   res: Response,
   next: NextFunction
 ) => {
   const { name, email, password } = req.body;
+
   if (!name || !email || !password) {
     return next(new AppError("Please include all information", 400));
   }
 
   try {
-    const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [
-      email,
-    ]);
-    const existingUser = rows as User[];
-    if (existingUser.length > 0) {
+    const existingUser = await prisma.users.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
       return next(new AppError("User already exists.", 400));
     }
 
     const password_hash = await bcrypt.hash(password, 10);
     const id = v4();
 
-    const [result] = await pool.query(
-      `
-            INSERT INTO users 
-            (id, name, email, password_hash, created_at)
-            VALUES(?, ?, ?, ?, NOW())`,
-      [id, name, email, password_hash]
-    );
+    const newUser = await prisma.users.create({
+      data: {
+        id,
+        name,
+        email,
+        password_hash,
+      },
+    });
 
     res.status(201).json({
-      message: "User succesfully created!",
-      user: { id, name, email },
+      message: "User successfully created!",
+      user: { id: newUser.id, name: newUser.name, email: newUser.email },
     });
   } catch (err) {
     return next(
@@ -55,25 +51,23 @@ export const register = async (
 };
 
 export const login = async (
-  req: Request,
+  req: Request<{}, {}, LoginBody>,
   res: Response,
   next: NextFunction
 ) => {
   const { email, password } = req.body;
+
   if (!email || !password) {
     return next(new AppError("Please include all information", 400));
   }
-  try {
-    const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [
-      email,
-    ]);
-    const users = rows as User[];
 
-    if (users.length === 0) {
+  try {
+    const user = await prisma.users.findUnique({ where: { email } });
+
+    if (!user) {
       return next(new AppError("Wrong email or password.", 401));
     }
 
-    const user = users[0];
     const validPassword = await bcrypt.compare(password, user.password_hash);
     if (!validPassword) {
       return next(new AppError("Wrong email or password.", 401));
@@ -84,6 +78,7 @@ export const login = async (
       env.JWT_SECRET,
       { expiresIn: "168h" }
     );
+
     res.json({
       token,
       user: { id: user.id, name: user.name, email: user.email },
