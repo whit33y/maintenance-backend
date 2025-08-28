@@ -3,12 +3,8 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { v4 } from "uuid";
 import { NextFunction, Request, Response } from "express";
-
-const JWT_SECRET = process.env.JWT_SECRET!;
-
-interface AppError extends Error {
-  status?: number;
-}
+import { env } from "../config/env";
+import { AppError } from "../utils/AppError";
 
 interface User {
   id: string;
@@ -24,9 +20,7 @@ export const register = async (
 ) => {
   const { name, email, password } = req.body;
   if (!name || !email || !password) {
-    const error: AppError = new Error("Please include all information");
-    error.status = 400;
-    return next(error);
+    return next(new AppError("Please include all information", 400));
   }
 
   try {
@@ -35,9 +29,7 @@ export const register = async (
     ]);
     const existingUser = rows as User[];
     if (existingUser.length > 0) {
-      const error: AppError = new Error("User already exists.");
-      error.status = 400;
-      return next(error);
+      return next(new AppError("User already exists.", 400));
     }
 
     const password_hash = await bcrypt.hash(password, 10);
@@ -56,12 +48,9 @@ export const register = async (
       user: { id, name, email },
     });
   } catch (err) {
-    console.error(err);
-    const error: AppError = new Error(
-      "Something went wrong while creating account."
+    return next(
+      new AppError("Something went wrong while creating account.", 500)
     );
-    error.status = 500;
-    return next(error);
   }
 };
 
@@ -72,9 +61,7 @@ export const login = async (
 ) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    const error: AppError = new Error("Please include all informations.");
-    error.status = 400;
-    return next(error);
+    return next(new AppError("Please include all information", 400));
   }
   try {
     const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [
@@ -83,22 +70,18 @@ export const login = async (
     const users = rows as User[];
 
     if (users.length === 0) {
-      const error: AppError = new Error("Wrong email or password.");
-      error.status = 401;
-      return next(error);
+      return next(new AppError("Wrong email or password.", 401));
     }
 
     const user = users[0];
     const validPassword = await bcrypt.compare(password, user.password_hash);
     if (!validPassword) {
-      const error: AppError = new Error("Wrong email or password.");
-      error.status = 401;
-      return next(error);
+      return next(new AppError("Wrong email or password.", 401));
     }
 
     const token = jwt.sign(
       { id: user.id, email: user.email, name: user.name },
-      JWT_SECRET,
+      env.JWT_SECRET,
       { expiresIn: "168h" }
     );
     res.json({
@@ -106,8 +89,6 @@ export const login = async (
       user: { id: user.id, name: user.name, email: user.email },
     });
   } catch (err) {
-    const error: AppError = new Error("Something went wrong, server error.");
-    error.status = 500;
-    return next(error);
+    return next(new AppError("Something went wrong, server error.", 500));
   }
 };
