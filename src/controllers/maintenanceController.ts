@@ -2,16 +2,21 @@ import { v4 } from "uuid";
 import { NextFunction, Request, Response } from "express";
 import { AppError } from "../utils/AppError";
 import { prisma } from "../config/prisma";
+import { maintenance } from "../generated/prisma";
+import {
+  CreateMaintenanceBody,
+  UpdateMaintenanceBody,
+} from "../types/maintenance-interface";
 
 //@desc Get all maintenance
 //@route GET/api/maintenance
 export const getMaintenance = async (
-  req: Request,
-  res: Response,
+  req: Request<{ user_id: string }>,
+  res: Response<maintenance[]>,
   next: NextFunction
 ) => {
   try {
-    const user_id = (req as Request & { user: { id: string } }).user.id;
+    const user_id = req.params.user_id;
     const maintenance = await prisma.maintenance.findMany({
       where: { user_id },
     });
@@ -24,13 +29,13 @@ export const getMaintenance = async (
 //@desc Get maintenance by id
 //@route GET/api/maintenance/:id
 export const getSingleMaintenance = async (
-  req: Request<{ id: string }>,
-  res: Response,
+  req: Request<{ id: string; user_id: string }>,
+  res: Response<maintenance | null>,
   next: NextFunction
 ) => {
   const { id } = req.params;
   try {
-    const user_id = (req as Request & { user: { id: string } }).user.id;
+    const user_id = req.params.user_id;
     const maintenance = await prisma.maintenance.findFirst({
       where: { user_id, id },
     });
@@ -46,8 +51,8 @@ export const getSingleMaintenance = async (
 //@desc Post maintenance
 //@route POST/api/maintenance
 export const postMaintenance = async (
-  req: Request,
-  res: Response,
+  req: Request<{ user_id: string }, {}, CreateMaintenanceBody>,
+  res: Response<maintenance | null>,
   next: NextFunction
 ) => {
   const {
@@ -68,7 +73,7 @@ export const postMaintenance = async (
   }
   try {
     const id = v4();
-    const user_id = (req as Request & { user: { id: string } }).user.id;
+    const user_id = req.params.user_id;
 
     const maintenance = await prisma.maintenance.create({
       data: {
@@ -94,8 +99,8 @@ export const postMaintenance = async (
 //@desc Update maintenance
 //@route PUT/api/maintenance/:id
 export const updateMaintenance = async (
-  req: Request,
-  res: Response,
+  req: Request<{ id: string; user_id: string }, {}, UpdateMaintenanceBody>,
+  res: Response<{ updated: maintenance }>,
   next: NextFunction
 ) => {
   const { id } = req.params;
@@ -119,7 +124,7 @@ export const updateMaintenance = async (
     return next(new AppError("Please include all information.", 400));
   }
   try {
-    const user_id = (req as Request & { user: { id: string } }).user.id;
+    const user_id = req.params.user_id;
     const existing = await prisma.maintenance.findFirst({
       where: { id, user_id },
     });
@@ -148,8 +153,8 @@ export const updateMaintenance = async (
 //@desc Delete maintenance
 //@route DELETE/api/maintenance/:id
 export const deleteMaintenance = async (
-  req: Request,
-  res: Response,
+  req: Request<{ id: string; user_id: string }>,
+  res: Response<{ message: string; maintenance: maintenance }>,
   next: NextFunction
 ) => {
   const { id } = req.params;
@@ -159,10 +164,10 @@ export const deleteMaintenance = async (
   }
 
   try {
-    const userId = (req as Request & { user: { id: string } }).user.id;
+    const user_id = req.params.user_id;
 
     const existing = await prisma.maintenance.findFirst({
-      where: { id, user_id: userId },
+      where: { id, user_id },
     });
 
     if (!existing) {
