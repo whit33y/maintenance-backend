@@ -1,7 +1,7 @@
-import { pool } from "../database";
 import { v4 } from "uuid";
 import { NextFunction, Request, Response } from "express";
 import { AppError } from "../utils/AppError";
+import { prisma } from "../config/prisma";
 
 interface Maintenance {
   id: string;
@@ -22,60 +22,33 @@ export const getMaintenance = async (
   next: NextFunction
 ) => {
   try {
-    const userId = (req as Request & { user: { id: string } }).user.id;
-    const [rows] = await pool.query(
-      "SELECT * FROM maintenance WHERE user_id = ?",
-      [userId]
-    );
-    const maintenance = rows as Maintenance[];
+    const user_id = (req as Request & { user: { id: string } }).user.id;
+    const maintenance = await prisma.maintenance.findMany({
+      where: { user_id },
+    });
     res.status(200).json(maintenance);
   } catch (err) {
     return next(new AppError("Something went wrong.", 404));
   }
 };
 
-//@desc Get all upcoming maintenance
-//@route GET/api/maintenance
-// export const getUpcomingMaintenance = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction
-// ) => {
-//   const { days } = req.params;
-//   try {
-//     const userId = (req as Request & { user: { id: string } }).user.id;
-
-//   } catch (err) {
-//     console.error(err);
-//     const error: AppError = new Error("Something went wrong.");
-//     error.status = 500;
-//     return next(error);
-//   }
-// };
-
 //@desc Get maintenance by id
 //@route GET/api/maintenance/:id
 export const getSingleMaintenance = async (
-  req: Request,
+  req: Request<{ id: string }>,
   res: Response,
   next: NextFunction
 ) => {
   const { id } = req.params;
   try {
-    const userId = (req as Request & { user: { id: string } }).user.id;
-
-    const [rows] = await pool.query(
-      "SELECT * FROM maintenance WHERE id = ? AND user_id = ?",
-      [id, userId]
-    );
-
-    const maintenance = rows as Maintenance[];
-
-    if (maintenance.length === 0) {
+    const user_id = (req as Request & { user: { id: string } }).user.id;
+    const maintenance = await prisma.maintenance.findFirst({
+      where: { user_id, id },
+    });
+    if (!maintenance) {
       return next(new AppError("Maintenance not found.", 404));
     }
-
-    res.status(200).json(maintenance[0]);
+    res.status(200).json(maintenance);
   } catch (err) {
     return next(new AppError("Something went wrong.", 500));
   }
@@ -106,37 +79,25 @@ export const postMaintenance = async (
   }
   try {
     const id = v4();
-    const completed = false;
-    const userId = (req as Request & { user: { id: string } }).user.id;
+    const user_id = (req as Request & { user: { id: string } }).user.id;
 
-    const [result] = await pool.query(
-      `INSERT INTO maintenance 
-            (id, title, category_id, start_date, repeat_interval, reminder_days_before, completed, user_id) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
+    const maintenance = await prisma.maintenance.create({
+      data: {
         id,
         title,
         category_id,
         start_date,
         repeat_interval,
         reminder_days_before,
-        completed,
-        userId,
-      ]
-    );
-
-    res.status(201).json({
-      id,
-      title,
-      category_id,
-      start_date,
-      repeat_interval,
-      reminder_days_before,
-      completed,
+        completed: false,
+        user_id,
+      },
     });
+
+    res.status(201).json(maintenance);
   } catch (err) {
     return next(
-      new AppError("Something went wrong while creating maintenance.", 500)
+      new AppError(`Something went wrong while creating maintenance.`, 500)
     );
   }
 };
@@ -168,41 +129,26 @@ export const updateMaintenance = async (
   ) {
     return next(new AppError("Please include all information.", 400));
   }
-
   try {
-    const userId = (req as Request & { user: { id: string } }).user.id;
-
-    const [rows] = await pool.query(
-      `UPDATE maintenance 
-             SET title = ?, category_id = ?, start_date = ?, repeat_interval = ?, reminder_days_before = ?, completed = ?
-             WHERE id = ? AND user_id = ?`,
-      [
+    const user_id = (req as Request & { user: { id: string } }).user.id;
+    const existing = await prisma.maintenance.findFirst({
+      where: { id, user_id },
+    });
+    if (!existing) {
+      return next(new AppError("Maintenance not found.", 404));
+    }
+    const updated = await prisma.maintenance.update({
+      where: { id },
+      data: {
         title,
         category_id,
         start_date,
         repeat_interval,
         reminder_days_before,
         completed,
-        id,
-        userId,
-      ]
-    );
-
-    const maintenance = rows as Maintenance[];
-
-    if (maintenance.length === 0) {
-      return next(new AppError("Maintenance not found.", 404));
-    }
-
-    res.status(200).json({
-      id,
-      title,
-      category_id,
-      start_date,
-      repeat_interval,
-      reminder_days_before,
-      completed,
+      },
     });
+    res.status(200).json({ updated });
   } catch (err) {
     return next(
       new AppError("Something went wrong while updating maintenance.", 500)
@@ -226,25 +172,21 @@ export const deleteMaintenance = async (
   try {
     const userId = (req as Request & { user: { id: string } }).user.id;
 
-    const [rows] = await pool.query(
-      `SELECT * FROM maintenance WHERE id = ? AND user_id = ?`,
-      [id, userId]
-    );
+    const existing = await prisma.maintenance.findFirst({
+      where: { id, user_id: userId },
+    });
 
-    const maintenance = rows as Maintenance[];
-
-    if (maintenance.length === 0) {
+    if (!existing) {
       return next(new AppError("Maintenance not found.", 404));
     }
 
-    await pool.query(`DELETE FROM maintenance WHERE id = ? AND user_id = ?`, [
-      id,
-      userId,
-    ]);
+    await prisma.maintenance.delete({
+      where: { id },
+    });
 
     res.status(200).json({
       message: "Maintenance deleted successfully",
-      maintenance: maintenance[0],
+      maintenance: existing,
     });
   } catch (err) {
     return next(
