@@ -3,17 +3,6 @@ import { NextFunction, Request, Response } from "express";
 import { AppError } from "../utils/AppError";
 import { prisma } from "../config/prisma";
 
-interface Maintenance {
-  id: string;
-  title: string;
-  category_id: string;
-  start_date: string;
-  repeat_interval: string;
-  reminder_days_before: number;
-  completed: boolean;
-  user_id: string;
-}
-
 //@desc Get all maintenance
 //@route GET/api/maintenance
 export const getMaintenance = async (

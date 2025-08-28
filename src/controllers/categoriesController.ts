@@ -1,14 +1,7 @@
-import { pool } from "../database";
 import { v4 } from "uuid";
 import { NextFunction, Request, Response } from "express";
 import { AppError } from "../utils/AppError";
-
-interface Category {
-  id: string;
-  name: string;
-  is_private: boolean;
-  user_id: string;
-}
+import { prisma } from "../config/prisma";
 
 //@desc Get all categories
 //@route GET/api/categories
@@ -18,8 +11,7 @@ export const getCategories = async (
   next: NextFunction
 ) => {
   try {
-    const [rows] = await pool.query("SELECT * FROM categories");
-    const categories = rows as Category[];
+    const categories = await prisma.categories.findMany();
     res.status(200).json(categories);
   } catch (err) {
     return next(new AppError("Something went wrong.", 404));
@@ -34,18 +26,11 @@ export const getSingleCategory = async (
   next: NextFunction
 ) => {
   const { id } = req.params;
-
   try {
-    const [rows] = await pool.query("SELECT * FROM categories WHERE id = ?", [
-      id,
-    ]);
-    const category = rows as Category[];
-
-    if (category.length === 0) {
-      return next(new AppError("Category not found.", 404));
-    }
-
-    res.status(200).json(category[0]);
+    const category = await prisma.categories.findFirst({
+      where: { id },
+    });
+    res.status(200).json(category);
   } catch (err) {
     return next(new AppError("Something went wrong.", 500));
   }
@@ -59,26 +44,21 @@ export const postCategory = async (
   next: NextFunction
 ) => {
   const { name, is_private, user_id } = req.body;
-  console.log(req.body);
   if (!name || user_id == null || is_private == null) {
     return next(new AppError("Please include all information.", 400));
   }
   try {
     const id = v4();
 
-    const [result] = await pool.query(
-      `INSERT INTO categories 
-            (id, name, is_private, user_id) 
-            VALUES (?, ?, ?, ?)`,
-      [id, name, is_private, user_id]
-    );
-
-    res.status(201).json({
-      id,
-      name,
-      is_private,
-      user_id,
+    const category = await prisma.categories.create({
+      data: {
+        id,
+        name,
+        is_private,
+        user_id,
+      },
     });
+    res.status(201).json({ category });
   } catch (err) {
     return next(
       new AppError("Something went wrong while creating category.", 500)
@@ -99,25 +79,19 @@ export const updateCategory = async (
     return next(new AppError("Please include all information.", 400));
   }
   try {
-    const [rows] = await pool.query(
-      `UPDATE categories 
-             SET name = ?, is_private = ?, user_id = ?
-             WHERE id = ?`,
-      [name, is_private, user_id, id]
-    );
-
-    const category = rows as Category[];
-
-    if (category.length === 0) {
+    const existing = await prisma.categories.findFirst({ where: { id } });
+    if (!existing) {
       return next(new AppError("Category not found.", 404));
     }
-
-    res.status(200).json({
-      id,
-      name,
-      is_private,
-      user_id,
+    const updated = await prisma.categories.update({
+      where: { id },
+      data: {
+        name,
+        user_id,
+        is_private,
+      },
     });
+    res.status(200).json({ updated });
   } catch (err) {
     return next(
       new AppError("Something went wrong while updating category.", 500)
@@ -139,20 +113,21 @@ export const deleteCategory = async (
   }
 
   try {
-    const [rows] = await pool.query(`SELECT * FROM categories WHERE id = ?`, [
-      id,
-    ]);
+    const existing = await prisma.categories.findFirst({
+      where: { id },
+    });
 
-    const category = rows as Category[];
-    if (category.length === 0) {
+    if (!existing) {
       return next(new AppError("Category not found.", 404));
     }
 
-    await pool.query(`DELETE FROM categories WHERE id = ?`, [id]);
+    await prisma.categories.delete({
+      where: { id },
+    });
 
     res.status(200).json({
       message: "Category deleted successfully",
-      category: category[0],
+      category: existing,
     });
   } catch (err) {
     return next(
