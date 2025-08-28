@@ -2,12 +2,13 @@ import { v4 } from "uuid";
 import { NextFunction, Request, Response } from "express";
 import { AppError } from "../utils/AppError";
 import { prisma } from "../config/prisma";
+import { categories } from "../generated/prisma";
+import { CategoryBody } from "../types/category-interface";
 
 //@desc Get all categories
 //@route GET/api/categories
 export const getCategories = async (
-  req: Request,
-  res: Response,
+  res: Response<categories[]>,
   next: NextFunction
 ) => {
   try {
@@ -21,8 +22,8 @@ export const getCategories = async (
 //@desc Get categories by id
 //@route GET/api/categories/:id
 export const getSingleCategory = async (
-  req: Request,
-  res: Response,
+  req: Request<{ id: string }>,
+  res: Response<categories | null>,
   next: NextFunction
 ) => {
   const { id } = req.params;
@@ -39,8 +40,8 @@ export const getSingleCategory = async (
 //@desc POST category
 //@route POST/api/categories
 export const postCategory = async (
-  req: Request,
-  res: Response,
+  req: Request<{}, {}, CategoryBody>,
+  res: Response<categories | null>,
   next: NextFunction
 ) => {
   const { name, is_private, user_id } = req.body;
@@ -49,7 +50,6 @@ export const postCategory = async (
   }
   try {
     const id = v4();
-
     const category = await prisma.categories.create({
       data: {
         id,
@@ -58,7 +58,7 @@ export const postCategory = async (
         user_id,
       },
     });
-    res.status(201).json({ category });
+    res.status(201).json(category);
   } catch (err) {
     return next(
       new AppError("Something went wrong while creating category.", 500)
@@ -69,8 +69,8 @@ export const postCategory = async (
 //@desc UPDATE category
 //@route PUT/api/categories/:id
 export const updateCategory = async (
-  req: Request,
-  res: Response,
+  req: Request<{ id: string }, {}, CategoryBody>,
+  res: Response<{ updated: categories }>,
   next: NextFunction
 ) => {
   const { id } = req.params;
@@ -102,8 +102,8 @@ export const updateCategory = async (
 //@desc DELETE category
 //@route DELETE/api/categories/:id
 export const deleteCategory = async (
-  req: Request,
-  res: Response,
+  req: Request<{ id: string }>,
+  res: Response<{ message: string; category: categories }>,
   next: NextFunction
 ) => {
   const { id } = req.params;
