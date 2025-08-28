@@ -1,3 +1,4 @@
+
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { v4 } from "uuid";
@@ -13,7 +14,6 @@ export const register = async (
   next: NextFunction
 ) => {
   const { name, email, password } = req.body;
-
   if (!name || !email || !password) {
     return next(new AppError("Please include all information", 400));
   }
@@ -56,7 +56,6 @@ export const login = async (
   next: NextFunction
 ) => {
   const { email, password } = req.body;
-
   if (!email || !password) {
     return next(new AppError("Please include all information", 400));
   }
@@ -78,7 +77,6 @@ export const login = async (
       env.JWT_SECRET,
       { expiresIn: "168h" }
     );
-
     res.json({
       token,
       user: { id: user.id, name: user.name, email: user.email },

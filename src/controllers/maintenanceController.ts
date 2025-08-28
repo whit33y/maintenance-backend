@@ -77,6 +77,7 @@ export const postMaintenance = async (
 
     const maintenance = await prisma.maintenance.create({
       data: {
+
         id,
         title,
         category_id,
@@ -101,6 +102,7 @@ export const postMaintenance = async (
 export const updateMaintenance = async (
   req: Request<{ id: string; user_id: string }, {}, UpdateMaintenanceBody>,
   res: Response<{ updated: maintenance }>,
+
   next: NextFunction
 ) => {
   const { id } = req.params;

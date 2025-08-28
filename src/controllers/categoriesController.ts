@@ -45,6 +45,7 @@ export const postCategory = async (
   next: NextFunction
 ) => {
   const { name, is_private, user_id } = req.body;
+
   if (!name || user_id == null || is_private == null) {
     return next(new AppError("Please include all information.", 400));
   }
@@ -128,6 +129,7 @@ export const deleteCategory = async (
     res.status(200).json({
       message: "Category deleted successfully",
       category: existing,
+
     });
   } catch (err) {
     return next(
