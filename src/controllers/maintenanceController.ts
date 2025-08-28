@@ -1,10 +1,7 @@
 import { pool } from "../database";
 import { v4 } from "uuid";
 import { NextFunction, Request, Response } from "express";
-
-interface AppError extends Error {
-  status?: number;
-}
+import { AppError } from "../utils/AppError";
 
 interface Maintenance {
   id: string;
@@ -33,10 +30,7 @@ export const getMaintenance = async (
     const maintenance = rows as Maintenance[];
     res.status(200).json(maintenance);
   } catch (err) {
-    console.error(err);
-    const error: AppError = new Error("Something went wrong.");
-    error.status = 404;
-    return next(error);
+    return next(new AppError("Something went wrong.", 404));
   }
 };
 
@@ -78,17 +72,12 @@ export const getSingleMaintenance = async (
     const maintenance = rows as Maintenance[];
 
     if (maintenance.length === 0) {
-      const error: AppError = new Error("Maintenance not found.");
-      error.status = 404;
-      return next(error);
+      return next(new AppError("Maintenance not found.", 404));
     }
 
     res.status(200).json(maintenance[0]);
   } catch (err) {
-    console.error(err);
-    const error: AppError = new Error("Something went wrong.");
-    error.status = 500;
-    return next(error);
+    return next(new AppError("Something went wrong.", 500));
   }
 };
 
@@ -113,9 +102,7 @@ export const postMaintenance = async (
     !repeat_interval ||
     reminder_days_before == null
   ) {
-    const error: AppError = new Error("Please include all information.");
-    error.status = 400;
-    return next(error);
+    return next(new AppError("Please include all information.", 400));
   }
   try {
     const id = v4();
@@ -148,12 +135,9 @@ export const postMaintenance = async (
       completed,
     });
   } catch (err) {
-    console.error(err);
-    const error: AppError = new Error(
-      "Something went wrong while creating maintenance."
+    return next(
+      new AppError("Something went wrong while creating maintenance.", 500)
     );
-    error.status = 500;
-    return next(error);
   }
 };
 
@@ -182,9 +166,7 @@ export const updateMaintenance = async (
     reminder_days_before == null ||
     completed == null
   ) {
-    const error: AppError = new Error("Please include all information.");
-    error.status = 400;
-    return next(error);
+    return next(new AppError("Please include all information.", 400));
   }
 
   try {
@@ -209,9 +191,7 @@ export const updateMaintenance = async (
     const maintenance = rows as Maintenance[];
 
     if (maintenance.length === 0) {
-      const error: AppError = new Error("Maintenance not found.");
-      error.status = 404;
-      return next(error);
+      return next(new AppError("Maintenance not found.", 404));
     }
 
     res.status(200).json({
@@ -224,12 +204,9 @@ export const updateMaintenance = async (
       completed,
     });
   } catch (err) {
-    console.error(err);
-    const error: AppError = new Error(
-      "Something went wrong while updating maintenance."
+    return next(
+      new AppError("Something went wrong while updating maintenance.", 500)
     );
-    error.status = 500;
-    return next(error);
   }
 };
 
@@ -243,9 +220,7 @@ export const deleteMaintenance = async (
   const { id } = req.params;
 
   if (!id) {
-    const error: AppError = new Error("Please pass necessary information.");
-    error.status = 400;
-    return next(error);
+    return next(new AppError("Please pass necessary information.", 400));
   }
 
   try {
@@ -259,9 +234,7 @@ export const deleteMaintenance = async (
     const maintenance = rows as Maintenance[];
 
     if (maintenance.length === 0) {
-      const error: AppError = new Error("Maintenance not found.");
-      error.status = 404;
-      return next(error);
+      return next(new AppError("Maintenance not found.", 404));
     }
 
     await pool.query(`DELETE FROM maintenance WHERE id = ? AND user_id = ?`, [
@@ -274,11 +247,8 @@ export const deleteMaintenance = async (
       maintenance: maintenance[0],
     });
   } catch (err) {
-    console.error(err);
-    const error: AppError = new Error(
-      "Something went wrong while deleting maintenance."
+    return next(
+      new AppError("Something went wrong while deleting maintenance.", 500)
     );
-    error.status = 500;
-    return next(error);
   }
 };

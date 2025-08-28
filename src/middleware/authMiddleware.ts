@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import { NextFunction, Request, Response } from "express";
+import { env } from "../config/env";
 
-const JWT_SECRET = process.env.JWT_SECRET!;
 
 export const authenticateToken = (
   req: Request,
@@ -17,7 +17,7 @@ export const authenticateToken = (
       .json({ message: "Access denied. No token provided." });
   }
 
-  jwt.verify(token, JWT_SECRET, (err, user) => {
+  jwt.verify(token, env.JWT_SECRET, (err, user) => {
     if (err) {
       return res.status(403).json({ message: "Invalid or expired token." });
     }

@@ -2,10 +2,11 @@
   "name": "maintenance-backend",
   "version": "1.0.0",
   "main": "index.js",
-  "type": "commonjs",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon src/server.ts"
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
@@ -22,6 +23,7 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.14.3",
+    "tsx": "^4.20.5",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
@@ -29,9 +31,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.3.0",
     "@types/uuid": "^10.0.0",
-    "nodemon": "^3.1.10",
     "prisma": "^6.14.0",
-    "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   }
 }

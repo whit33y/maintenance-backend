@@ -3,6 +3,14 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const requiredEnv = ["DB_HOST", "DB_USER", "DB_PASSWORD", "DB_DATABASE"];
+
+for (const env of requiredEnv) {
+  if (!process.env[env]) {
+    throw new Error(`Missing required environment variable: ${env}`);
+  }
+}
+
 export const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
