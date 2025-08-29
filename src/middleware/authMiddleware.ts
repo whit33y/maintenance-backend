@@ -1,7 +1,7 @@
-import jwt from "jsonwebtoken";
 import { NextFunction, Request, Response } from "express";
-import { env } from "../config/env";
+import jwt from "jsonwebtoken";
 
+import { env } from "../config/env";
 
 export const authenticateToken = (
   req: Request,
@@ -17,12 +17,16 @@ export const authenticateToken = (
       .json({ message: "Access denied. No token provided." });
   }
 
-  jwt.verify(token, env.JWT_SECRET, (err, user) => {
-    if (err) {
+  jwt.verify(token, env.JWT_SECRET, (err, decoded) => {
+    if (err || typeof decoded !== "object" || !decoded) {
       return res.status(403).json({ message: "Invalid or expired token." });
     }
 
-    (req as any).user = user; 
+    req.user = {
+      id: decoded.id as string,
+      email: decoded.email as string,
+      name: decoded.name as string,
+    };
     next();
   });
 };

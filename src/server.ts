@@ -1,9 +1,10 @@
-import express, { NextFunction, Request, Response } from "express";
-import dotenv from "dotenv";
-import maintenance from "./routes/maintenance";
-import categories from "./routes/categories";
-import auth from "./routes/auth";
 import cors from "cors";
+import dotenv from "dotenv";
+import express, { NextFunction, Request, Response } from "express";
+
+import auth from "./routes/auth";
+import categories from "./routes/categories";
+import maintenance from "./routes/maintenance";
 
 dotenv.config();
 
@@ -29,7 +30,7 @@ app.use(
     err: Error & { status?: number },
     req: Request,
     res: Response,
-    next: NextFunction
+    _next: NextFunction
   ) => {
     console.error(err.message);
     res

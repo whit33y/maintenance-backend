@@ -1,29 +1,48 @@
-import js from "@eslint/js";
+// eslint.config.js
+import simpleImportSort from "eslint-plugin-simple-import-sort";
 import globals from "globals";
 import tseslint from "typescript-eslint";
-import json from "@eslint/json";
-import { defineConfig } from "eslint/config";
 
-export default defineConfig([
+export default tseslint.config(
+  // Apply base recommended configs for JS and TS
+  ...tseslint.configs.recommended,
+
+  // Configuration for all JavaScript and TypeScript files
   {
     files: ["**/*.{js,mjs,cjs,ts,mts,cts}"],
-    plugins: { js },
-    extends: ["js/recommended"],
+    plugins: {
+      "simple-import-sort": simpleImportSort,
+    },
     languageOptions: {
-      globals: { ...globals.browser, ...globals.node },
+      globals: {
+        ...globals.node, // Use Node.js globals ONLY
+      },
     },
     rules: {
+      // Your custom rules go here
       "@typescript-eslint/no-unused-vars": [
         "error",
-        { argsIgnorePattern: "^_" },
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
       ],
+      "prefer-const": "error",
+
+      // Rules for import sorting
+      "simple-import-sort/imports": "error",
+      "simple-import-sort/exports": "error",
     },
   },
-  tseslint.configs.recommended,
+
+  // Ignore specific files or directories
   {
-    files: ["**/*.json"],
-    plugins: { json },
-    language: "json/json",
-    extends: ["json/recommended"],
-  },
-]);
+    ignores: [
+      "node_modules/",
+      "dist/",
+      "src/generated/**",
+      "src/generated/prisma/**",
+    ],
+  }
+);

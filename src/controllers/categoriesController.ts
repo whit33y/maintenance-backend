@@ -1,13 +1,15 @@
-import { v4 } from "uuid";
 import { NextFunction, Request, Response } from "express";
-import { AppError } from "../utils/AppError";
+import { v4 } from "uuid";
+
 import { prisma } from "../config/prisma";
 import { categories } from "../generated/prisma";
 import { CategoryBody } from "../types/category-interface";
+import { AppError } from "../utils/AppError";
 
 //@desc Get all categories
 //@route GET/api/categories
 export const getCategories = async (
+  req: Request,
   res: Response<categories[]>,
   next: NextFunction
 ) => {
@@ -15,7 +17,7 @@ export const getCategories = async (
     const categories = await prisma.categories.findMany();
     res.status(200).json(categories);
   } catch (err) {
-    return next(new AppError("Something went wrong.", 404));
+    return next(new AppError(`Something went wrong. ${err}`, 404));
   }
 };
 
@@ -33,14 +35,14 @@ export const getSingleCategory = async (
     });
     res.status(200).json(category);
   } catch (err) {
-    return next(new AppError("Something went wrong.", 500));
+    return next(new AppError(`Something went wrong. ${err}`, 500));
   }
 };
 
 //@desc POST category
 //@route POST/api/categories
 export const postCategory = async (
-  req: Request<{}, {}, CategoryBody>,
+  req: Request<object, object, CategoryBody>,
   res: Response<categories | null>,
   next: NextFunction
 ) => {
@@ -61,16 +63,14 @@ export const postCategory = async (
     });
     res.status(201).json(category);
   } catch (err) {
-    return next(
-      new AppError("Something went wrong while creating category.", 500)
-    );
+    return next(new AppError(`Something went wrong. ${err}`, 500));
   }
 };
 
 //@desc UPDATE category
 //@route PUT/api/categories/:id
 export const updateCategory = async (
-  req: Request<{ id: string }, {}, CategoryBody>,
+  req: Request<{ id: string }, object, CategoryBody>,
   res: Response<{ updated: categories }>,
   next: NextFunction
 ) => {
@@ -95,7 +95,7 @@ export const updateCategory = async (
     res.status(200).json({ updated });
   } catch (err) {
     return next(
-      new AppError("Something went wrong while updating category.", 500)
+      new AppError(`Something went wrong while updating category. ${err}`, 500)
     );
   }
 };
@@ -129,11 +129,10 @@ export const deleteCategory = async (
     res.status(200).json({
       message: "Category deleted successfully",
       category: existing,
-
     });
   } catch (err) {
     return next(
-      new AppError("Something went wrong while deleting category.", 500)
+      new AppError(`Something went wrong while deleting category. ${err}`, 500)
     );
   }
 };
