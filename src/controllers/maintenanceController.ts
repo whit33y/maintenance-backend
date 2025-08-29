@@ -1,12 +1,13 @@
-import { v4 } from "uuid";
 import { NextFunction, Request, Response } from "express";
-import { AppError } from "../utils/AppError";
+import { v4 } from "uuid";
+
 import { prisma } from "../config/prisma";
 import { maintenance } from "../generated/prisma";
 import {
   CreateMaintenanceBody,
   UpdateMaintenanceBody,
 } from "../types/maintenance-interface";
+import { AppError } from "../utils/AppError";
 
 //@desc Get all maintenance
 //@route GET/api/maintenance
@@ -22,7 +23,7 @@ export const getMaintenance = async (
     });
     res.status(200).json(maintenance);
   } catch (err) {
-    return next(new AppError("Something went wrong.", 404));
+    return next(new AppError(`Something went wrong. ${err}`, 404));
   }
 };
 
@@ -44,14 +45,14 @@ export const getSingleMaintenance = async (
     }
     res.status(200).json(maintenance);
   } catch (err) {
-    return next(new AppError("Something went wrong.", 500));
+    return next(new AppError(`Something went wrong. ${err}`, 500));
   }
 };
 
 //@desc Post maintenance
 //@route POST/api/maintenance
 export const postMaintenance = async (
-  req: Request<{ user_id: string }, {}, CreateMaintenanceBody>,
+  req: Request<{ user_id: string }, object, CreateMaintenanceBody>,
   res: Response<maintenance | null>,
   next: NextFunction
 ) => {
@@ -77,7 +78,6 @@ export const postMaintenance = async (
 
     const maintenance = await prisma.maintenance.create({
       data: {
-
         id,
         title,
         category_id,
@@ -92,7 +92,10 @@ export const postMaintenance = async (
     res.status(201).json(maintenance);
   } catch (err) {
     return next(
-      new AppError(`Something went wrong while creating maintenance.`, 500)
+      new AppError(
+        `Something went wrong while creating maintenance. ${err}`,
+        500
+      )
     );
   }
 };
@@ -100,7 +103,7 @@ export const postMaintenance = async (
 //@desc Update maintenance
 //@route PUT/api/maintenance/:id
 export const updateMaintenance = async (
-  req: Request<{ id: string; user_id: string }, {}, UpdateMaintenanceBody>,
+  req: Request<{ id: string; user_id: string }, object, UpdateMaintenanceBody>,
   res: Response<{ updated: maintenance }>,
 
   next: NextFunction
@@ -147,7 +150,10 @@ export const updateMaintenance = async (
     res.status(200).json({ updated });
   } catch (err) {
     return next(
-      new AppError("Something went wrong while updating maintenance.", 500)
+      new AppError(
+        `Something went wrong while updating maintenance. ${err}`,
+        500
+      )
     );
   }
 };
@@ -186,7 +192,10 @@ export const deleteMaintenance = async (
     });
   } catch (err) {
     return next(
-      new AppError("Something went wrong while deleting maintenance.", 500)
+      new AppError(
+        `Something went wrong while deleting maintenance. ${err}`,
+        500
+      )
     );
   }
 };

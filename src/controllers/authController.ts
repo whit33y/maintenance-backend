@@ -1,15 +1,15 @@
-
 import bcrypt from "bcrypt";
+import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { v4 } from "uuid";
-import { NextFunction, Request, Response } from "express";
+
 import { env } from "../config/env";
-import { AppError } from "../utils/AppError";
 import { prisma } from "../config/prisma";
-import { RegisterBody, LoginBody } from "../types/auth-interface";
+import { LoginBody, RegisterBody } from "../types/auth-interface";
+import { AppError } from "../utils/AppError";
 
 export const register = async (
-  req: Request<{}, {}, RegisterBody>,
+  req: Request<object, object, RegisterBody>,
   res: Response,
   next: NextFunction
 ) => {
@@ -45,13 +45,13 @@ export const register = async (
     });
   } catch (err) {
     return next(
-      new AppError("Something went wrong while creating account.", 500)
+      new AppError(`Something went wrong while creating account. ${err}`, 500)
     );
   }
 };
 
 export const login = async (
-  req: Request<{}, {}, LoginBody>,
+  req: Request<object, object, LoginBody>,
   res: Response,
   next: NextFunction
 ) => {
@@ -82,6 +82,6 @@ export const login = async (
       user: { id: user.id, name: user.name, email: user.email },
     });
   } catch (err) {
-    return next(new AppError("Something went wrong, server error.", 500));
+    return next(new AppError(`Something went wrong. ${err}`, 500));
   }
 };
