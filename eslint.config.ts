@@ -1,7 +1,7 @@
 // eslint.config.js
-import simpleImportSort from "eslint-plugin-simple-import-sort";
-import globals from "globals";
-import tseslint from "typescript-eslint";
+import simpleImportSort from 'eslint-plugin-simple-import-sort';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   // Apply base recommended configs for JS and TS
@@ -9,9 +9,9 @@ export default tseslint.config(
 
   // Configuration for all JavaScript and TypeScript files
   {
-    files: ["**/*.{js,mjs,cjs,ts,mts,cts}"],
+    files: ['**/*.{js,mjs,cjs,ts,mts,cts}'],
     plugins: {
-      "simple-import-sort": simpleImportSort,
+      'simple-import-sort': simpleImportSort,
     },
     languageOptions: {
       globals: {
@@ -20,29 +20,24 @@ export default tseslint.config(
     },
     rules: {
       // Your custom rules go here
-      "@typescript-eslint/no-unused-vars": [
-        "error",
+      '@typescript-eslint/no-unused-vars': [
+        'error',
         {
-          argsIgnorePattern: "^_",
-          varsIgnorePattern: "^_",
-          caughtErrorsIgnorePattern: "^_",
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
         },
       ],
-      "prefer-const": "error",
+      'prefer-const': 'error',
 
       // Rules for import sorting
-      "simple-import-sort/imports": "error",
-      "simple-import-sort/exports": "error",
+      'simple-import-sort/imports': 'error',
+      'simple-import-sort/exports': 'error',
     },
   },
 
   // Ignore specific files or directories
   {
-    ignores: [
-      "node_modules/",
-      "dist/",
-      "src/generated/**",
-      "src/generated/prisma/**",
-    ],
-  }
+    ignores: ['node_modules/', 'dist/', 'src/generated/**', 'src/generated/prisma/**'],
+  },
 );

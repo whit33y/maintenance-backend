@@ -1,17 +1,17 @@
-import { NextFunction, Request, Response } from "express";
-import { v4 } from "uuid";
+import { NextFunction, Request, Response } from 'express';
+import { v4 } from 'uuid';
 
-import { prisma } from "../config/prisma";
-import { categories } from "../generated/prisma";
-import { CategoryBody } from "../types/category-interface";
-import { AppError } from "../utils/AppError";
+import { prisma } from '../config/prisma';
+import { categories } from '../generated/prisma';
+import { CategoryBody } from '../types/category-interface';
+import { AppError } from '../utils/AppError';
 
 //@desc Get all categories
 //@route GET/api/categories
 export const getCategories = async (
   req: Request,
   res: Response<categories[]>,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const categories = await prisma.categories.findMany();
@@ -26,7 +26,7 @@ export const getCategories = async (
 export const getSingleCategory = async (
   req: Request<{ id: string }>,
   res: Response<categories | null>,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const { id } = req.params;
   try {
@@ -44,12 +44,12 @@ export const getSingleCategory = async (
 export const postCategory = async (
   req: Request<object, object, CategoryBody>,
   res: Response<categories | null>,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const { name, is_private, user_id } = req.body;
 
   if (!name || user_id == null || is_private == null) {
-    return next(new AppError("Please include all information.", 400));
+    return next(new AppError('Please include all information.', 400));
   }
   try {
     const id = v4();
@@ -72,17 +72,17 @@ export const postCategory = async (
 export const updateCategory = async (
   req: Request<{ id: string }, object, CategoryBody>,
   res: Response<{ updated: categories }>,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const { id } = req.params;
   const { name, is_private, user_id } = req.body;
   if (!name || !user_id || is_private == null) {
-    return next(new AppError("Please include all information.", 400));
+    return next(new AppError('Please include all information.', 400));
   }
   try {
     const existing = await prisma.categories.findFirst({ where: { id } });
     if (!existing) {
-      return next(new AppError("Category not found.", 404));
+      return next(new AppError('Category not found.', 404));
     }
     const updated = await prisma.categories.update({
       where: { id },
@@ -94,9 +94,7 @@ export const updateCategory = async (
     });
     res.status(200).json({ updated });
   } catch (err) {
-    return next(
-      new AppError(`Something went wrong while updating category. ${err}`, 500)
-    );
+    return next(new AppError(`Something went wrong while updating category. ${err}`, 500));
   }
 };
 
@@ -105,12 +103,12 @@ export const updateCategory = async (
 export const deleteCategory = async (
   req: Request<{ id: string }>,
   res: Response<{ message: string; category: categories }>,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const { id } = req.params;
 
   if (!id) {
-    return next(new AppError("Please pass necessary information.", 400));
+    return next(new AppError('Please pass necessary information.', 400));
   }
 
   try {
@@ -119,7 +117,7 @@ export const deleteCategory = async (
     });
 
     if (!existing) {
-      return next(new AppError("Category not found.", 404));
+      return next(new AppError('Category not found.', 404));
     }
 
     await prisma.categories.delete({
@@ -127,12 +125,10 @@ export const deleteCategory = async (
     });
 
     res.status(200).json({
-      message: "Category deleted successfully",
+      message: 'Category deleted successfully',
       category: existing,
     });
   } catch (err) {
-    return next(
-      new AppError(`Something went wrong while deleting category. ${err}`, 500)
-    );
+    return next(new AppError(`Something went wrong while deleting category. ${err}`, 500));
   }
 };
