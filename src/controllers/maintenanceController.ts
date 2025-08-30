@@ -14,7 +14,7 @@ import { AppError } from "../utils/AppError";
 export const getMaintenance = async (
   req: Request<{ user_id: string }>,
   res: Response<maintenance[]>,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const user_id = req.params.user_id;
@@ -32,7 +32,7 @@ export const getMaintenance = async (
 export const getSingleMaintenance = async (
   req: Request<{ id: string; user_id: string }>,
   res: Response<maintenance | null>,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const { id } = req.params;
   try {
@@ -54,7 +54,7 @@ export const getSingleMaintenance = async (
 export const postMaintenance = async (
   req: Request<{ user_id: string }, object, CreateMaintenanceBody>,
   res: Response<maintenance | null>,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const {
     title,
@@ -94,8 +94,8 @@ export const postMaintenance = async (
     return next(
       new AppError(
         `Something went wrong while creating maintenance. ${err}`,
-        500
-      )
+        500,
+      ),
     );
   }
 };
@@ -106,7 +106,7 @@ export const updateMaintenance = async (
   req: Request<{ id: string; user_id: string }, object, UpdateMaintenanceBody>,
   res: Response<{ updated: maintenance }>,
 
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const { id } = req.params;
   const {
@@ -152,8 +152,8 @@ export const updateMaintenance = async (
     return next(
       new AppError(
         `Something went wrong while updating maintenance. ${err}`,
-        500
-      )
+        500,
+      ),
     );
   }
 };
@@ -163,7 +163,7 @@ export const updateMaintenance = async (
 export const deleteMaintenance = async (
   req: Request<{ id: string; user_id: string }>,
   res: Response<{ message: string; maintenance: maintenance }>,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const { id } = req.params;
 
@@ -194,8 +194,8 @@ export const deleteMaintenance = async (
     return next(
       new AppError(
         `Something went wrong while deleting maintenance. ${err}`,
-        500
-      )
+        500,
+      ),
     );
   }
 };
