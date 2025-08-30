@@ -1,49 +1,70 @@
-import { NextFunction, Request, Response } from "express";
-import { v4 } from "uuid";
+import { NextFunction, Request, Response } from 'express';
 
-import { prisma } from "../config/prisma";
-import { maintenance } from "../generated/prisma";
-import {
-  CreateMaintenanceBody,
-  UpdateMaintenanceBody,
-} from "../types/maintenance-interface";
-import { AppError } from "../utils/AppError";
+import { prisma } from '../config/prisma';
+import { maintenance } from '../generated/prisma';
+import { MaintenanceBody } from '../types/maintenance-interface';
+import { AppError } from '../utils/AppError';
 
 //@desc Get all maintenance
 //@route GET/api/maintenance
-export const getMaintenance = async (
+export const getMaintenances = async (
   req: Request<{ user_id: string }>,
   res: Response<maintenance[]>,
-  next: NextFunction
+  next: NextFunction,
 ) => {
+  const user_id = req.user?.id;
+  if (!user_id) {
+    return next(new AppError('User not found.', 400));
+  }
   try {
-    const user_id = req.params.user_id;
-    const maintenance = await prisma.maintenance.findMany({
+    const maintenances = await prisma.maintenance.findMany({
       where: { user_id },
     });
-    res.status(200).json(maintenance);
+    res.status(200).json(maintenances);
   } catch (err) {
-    return next(new AppError(`Something went wrong. ${err}`, 404));
+    return next(new AppError(`Something went wrong. ${err}`, 500));
   }
 };
 
 //@desc Get maintenance by id
 //@route GET/api/maintenance/:id
-export const getSingleMaintenance = async (
-  req: Request<{ id: string; user_id: string }>,
+export const getMaintenanceById = async (
+  req: Request<{ user_id: string; id: string }>,
   res: Response<maintenance | null>,
-  next: NextFunction
+  next: NextFunction,
 ) => {
+  const user_id = req.user?.id;
   const { id } = req.params;
+  if (!user_id || !id) {
+    return next(new AppError('Something went wrong. Missing information', 400));
+  }
   try {
-    const user_id = req.params.user_id;
     const maintenance = await prisma.maintenance.findFirst({
-      where: { user_id, id },
+      where: { id, user_id },
     });
-    if (!maintenance) {
-      return next(new AppError("Maintenance not found.", 404));
-    }
     res.status(200).json(maintenance);
+  } catch (err) {
+    return next(new AppError(`Something went wrong. ${err}`, 500));
+  }
+};
+
+//@desc Get maintenance by category
+//@route GET/api/maintenance/category/:category_id
+export const getMaintenancesByCategory = async (
+  req: Request<{ user_id: string; category_id: string }>,
+  res: Response<maintenance[]>,
+  next: NextFunction,
+) => {
+  const user_id = req.user?.id;
+  const { category_id } = req.params;
+  if (!user_id || !category_id) {
+    return next(new AppError('Something went wrong. Missing information', 400));
+  }
+  try {
+    const maintenances = await prisma.maintenance.findMany({
+      where: { category_id, user_id },
+    });
+    res.status(200).json(maintenances);
   } catch (err) {
     return next(new AppError(`Something went wrong. ${err}`, 500));
   }
@@ -52,150 +73,113 @@ export const getSingleMaintenance = async (
 //@desc Post maintenance
 //@route POST/api/maintenance
 export const postMaintenance = async (
-  req: Request<{ user_id: string }, object, CreateMaintenanceBody>,
+  req: Request<{ user_id: string }, object, MaintenanceBody>,
   res: Response<maintenance | null>,
-  next: NextFunction
+  next: NextFunction,
 ) => {
-  const {
-    title,
-    category_id,
-    start_date,
-    repeat_interval,
-    reminder_days_before,
-  } = req.body;
-  if (
-    !title ||
-    !category_id ||
-    !start_date ||
-    !repeat_interval ||
-    reminder_days_before == null
-  ) {
-    return next(new AppError("Please include all information.", 400));
+  const user_id = req.user?.id;
+  const { title, start_date, repetition_unit, repetition_value, category_id, notes } = req.body;
+  if (!user_id || !title || !start_date || !repetition_unit || !repetition_value || !category_id) {
+    return next(new AppError('Something went wrong. Missing information', 400));
   }
-  try {
-    const id = v4();
-    const user_id = req.params.user_id;
+  const startDateObject = new Date(start_date);
 
+  try {
     const maintenance = await prisma.maintenance.create({
       data: {
-        id,
-        title,
-        category_id,
-        start_date,
-        repeat_interval,
-        reminder_days_before,
-        completed: false,
         user_id,
+        title,
+        start_date: startDateObject,
+        repetition_unit,
+        repetition_value,
+        category_id,
+        notes,
       },
     });
-
     res.status(201).json(maintenance);
   } catch (err) {
-    return next(
-      new AppError(
-        `Something went wrong while creating maintenance. ${err}`,
-        500
-      )
-    );
+    return next(new AppError(`Something went wrong. ${err}`, 500));
   }
 };
 
 //@desc Update maintenance
 //@route PUT/api/maintenance/:id
 export const updateMaintenance = async (
-  req: Request<{ id: string; user_id: string }, object, UpdateMaintenanceBody>,
-  res: Response<{ updated: maintenance }>,
-
-  next: NextFunction
+  req: Request<{ id: string; user_id: string }, object, MaintenanceBody>,
+  res: Response<maintenance | null>,
+  next: NextFunction,
 ) => {
+  const user_id = req.user?.id;
   const { id } = req.params;
-  const {
-    title,
-    category_id,
-    start_date,
-    repeat_interval,
-    reminder_days_before,
-    completed,
-  } = req.body;
-
+  const { title, start_date, repetition_unit, repetition_value, category_id, notes } = req.body;
   if (
+    !user_id ||
+    !id ||
     !title ||
-    !category_id ||
     !start_date ||
-    !repeat_interval ||
-    reminder_days_before == null ||
-    completed == null
+    !repetition_unit ||
+    !repetition_value ||
+    !category_id
   ) {
-    return next(new AppError("Please include all information.", 400));
+    return next(new AppError('Something went wrong. Missing information', 400));
   }
   try {
-    const user_id = req.params.user_id;
     const existing = await prisma.maintenance.findFirst({
       where: { id, user_id },
     });
     if (!existing) {
-      return next(new AppError("Maintenance not found.", 404));
+      return next(new AppError('Maintenance not found.', 404));
     }
     const updated = await prisma.maintenance.update({
-      where: { id },
+      where: { id, user_id },
       data: {
         title,
-        category_id,
         start_date,
-        repeat_interval,
-        reminder_days_before,
-        completed,
+        repetition_unit,
+        repetition_value,
+        category_id,
+        notes,
       },
     });
-    res.status(200).json({ updated });
+    res.status(200).json(updated);
   } catch (err) {
-    return next(
-      new AppError(
-        `Something went wrong while updating maintenance. ${err}`,
-        500
-      )
-    );
+    return next(new AppError(`Something went wrong. ${err}`, 500));
   }
 };
 
 //@desc Delete maintenance
 //@route DELETE/api/maintenance/:id
 export const deleteMaintenance = async (
-  req: Request<{ id: string; user_id: string }>,
-  res: Response<{ message: string; maintenance: maintenance }>,
-  next: NextFunction
+  req: Request<{
+    user_id: string;
+    id: string;
+  }>,
+  res: Response<{ message: string; data: maintenance }>,
+  next: NextFunction,
 ) => {
+  const user_id = req.user?.id;
   const { id } = req.params;
-
-  if (!id) {
-    return next(new AppError("Please pass necessary information.", 400));
+  if (!user_id || !id) {
+    return next(new AppError('Something went wrong. Missing information', 400));
   }
-
   try {
-    const user_id = req.params.user_id;
-
     const existing = await prisma.maintenance.findFirst({
-      where: { id, user_id },
+      where: {
+        id,
+        user_id,
+      },
     });
-
     if (!existing) {
-      return next(new AppError("Maintenance not found.", 404));
+      return next(new AppError('Maintenance not found.', 404));
     }
-
     await prisma.maintenance.delete({
-      where: { id },
+      where: {
+        id,
+        user_id,
+      },
     });
-
-    res.status(200).json({
-      message: "Maintenance deleted successfully",
-      maintenance: existing,
-    });
+    res.status(200).json({ message: 'Succesfully deleted maintenance.', data: existing });
   } catch (err) {
-    return next(
-      new AppError(
-        `Something went wrong while deleting maintenance. ${err}`,
-        500
-      )
-    );
+    return next(new AppError(`Something went wrong. ${err}`, 500));
   }
 };

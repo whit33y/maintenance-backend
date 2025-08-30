@@ -9,38 +9,82 @@ datasource db {
 }
 
 model categories {
-  id          String        @id @db.Char(36)
-  name        String        @db.VarChar(80)
-  is_private  Boolean       @default(false)
+  id          String        @id @default(uuid()) @db.Char(36)
+  name        String        @db.VarChar(255)
   user_id     String        @db.Char(36)
-  users       users         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "categories_ibfk_1")
+  created_at  DateTime      @default(now()) @db.Timestamp(0)
+  updated_at  DateTime      @updatedAt @db.Timestamp(0)
+  users       users?        @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_categories_users")
   maintenance maintenance[]
 
-  @@index([user_id], map: "user_id")
+  @@index([user_id], map: "fk_categories_users")
 }
 
-model maintenance {
-  id                   String      @id @db.Char(36)
-  title                String      @db.VarChar(160)
-  category_id          String?     @db.Char(36)
-  start_date           DateTime    @db.Date
-  repeat_interval      String?     @db.VarChar(16)
-  reminder_days_before Int?        @default(7)
-  completed            Boolean?    @default(false)
-  user_id              String      @db.Char(36)
-  users                users       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_maintenance_user")
-  categories           categories? @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "maintenance_ibfk_1")
+model maintenance_events {
+  id              String      @id @default(uuid()) @db.Char(36)
+  maintenance_id  String      @db.Char(36)
+  user_id         String      @db.Char(36)
+  completion_date DateTime?   @db.Date
+  notes           String?     @db.Text
+  created_at      DateTime    @default(now()) @db.Timestamp(0)
+  updated_at      DateTime    @updatedAt @db.Timestamp(0)
+  users           users       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_events_users")
+  maintenances    maintenance @relation(fields: [maintenance_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_events_maintenances")
 
-  @@index([category_id], map: "category_id")
-  @@index([user_id], map: "fk_maintenance_user")
+  @@index([maintenance_id], map: "fk_events_maintenance")
+  @@index([user_id], map: "fk_events_users")
+}
+
+model reminders {
+  id             String      @id @default(uuid()) @db.Char(36)
+  maintenance_id String      @db.Char(36)
+  user_id        String      @db.Char(36)
+  due_date       DateTime    @db.Date
+  is_sent        Boolean     @default(false)
+  created_at     DateTime    @default(now()) @db.Timestamp(0)
+  updated_at     DateTime    @updatedAt @db.Timestamp(0)
+  users          users       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_reminders_users")
+  maintenances   maintenance @relation(fields: [maintenance_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_reminders_maintenances")
+
+  @@index([maintenance_id], map: "fk_reminders_maintenance")
+  @@index([user_id], map: "fk_reminders_users")
 }
 
 model users {
-  id            String        @id @db.Char(36)
-  name          String        @db.VarChar(120)
-  email         String        @unique(map: "email") @db.VarChar(180)
-  password_hash String        @db.VarChar(255)
-  created_at    DateTime      @default(now()) @db.Timestamp(0)
-  categories    categories[]
-  maintenance   maintenance[]
+  id                 String               @id @default(uuid()) @db.Char(36)
+  name               String               @db.VarChar(255)
+  email              String               @unique(map: "email") @db.VarChar(255)
+  password_hash      String               @db.VarChar(255)
+  updated_at         DateTime             @updatedAt @db.Timestamp(0)
+  categories         categories[]
+  maintenance        maintenance[]
+  maintenance_events maintenance_events[]
+  reminders          reminders[]
+}
+
+model maintenance {
+  id                 String                      @id @default(uuid()) @db.Char(36)
+  title              String                      @db.VarChar(255)
+  start_date         DateTime                    @db.Date
+  repetition_unit    maintenance_repetition_unit
+  repetition_value   Int
+  notes              String?                     @db.Text
+  category_id        String                      @db.Char(36)
+  user_id            String                      @db.Char(36)
+  created_at         DateTime                    @default(now()) @db.Timestamp(0)
+  updated_at         DateTime                    @updatedAt @db.Timestamp(0)
+  categories         categories                  @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_maintenance_categories")
+  users              users                       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_maintenance_users")
+  maintenance_events maintenance_events[]
+  reminders          reminders[]
+
+  @@index([category_id], map: "fk_maintenance_categories")
+  @@index([user_id], map: "fk_maintenance_users")
+}
+
+enum maintenance_repetition_unit {
+  day
+  week
+  month
+  year
 }

@@ -1,11 +1,10 @@
-export interface CreateMaintenanceBody {
-  title: string;
-  category_id: string;
-  start_date: string;
-  repeat_interval: string;
-  reminder_days_before: number;
-}
+type RepetitionUnit = 'day' | 'week' | 'month' | 'year';
 
-export interface UpdateMaintenanceBody extends CreateMaintenanceBody {
-  completed: boolean;
+export interface MaintenanceBody {
+  title: string;
+  start_date: string;
+  repetition_unit: RepetitionUnit;
+  repetition_value: number;
+  category_id: string;
+  notes?: string;
 }

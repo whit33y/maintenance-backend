@@ -1,4 +1,4 @@
-import dotenv from "dotenv";
+import dotenv from 'dotenv';
 
 dotenv.config();
 
@@ -11,7 +11,7 @@ function requireEnv(name: string): string {
 }
 
 export const env = {
-  JWT_SECRET: requireEnv("JWT_SECRET"),
-  DB_URL: requireEnv("DB_HOST"),
-  PORT: process.env.PORT || "8000",
+  JWT_SECRET: requireEnv('JWT_SECRET'),
+  DB_URL: requireEnv('DB_HOST'),
+  PORT: process.env.PORT || '8000',
 };

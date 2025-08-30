@@ -1,39 +1,48 @@
-import { NextFunction, Request, Response } from "express";
-import { v4 } from "uuid";
+import { NextFunction, Request, Response } from 'express';
 
-import { prisma } from "../config/prisma";
-import { categories } from "../generated/prisma";
-import { CategoryBody } from "../types/category-interface";
-import { AppError } from "../utils/AppError";
+import { prisma } from '../config/prisma';
+import { categories } from '../generated/prisma';
+import { CategoryBody } from '../types/category-interface';
+import { AppError } from '../utils/AppError';
 
 //@desc Get all categories
 //@route GET/api/categories
 export const getCategories = async (
-  req: Request,
+  req: Request<{ user_id: string }>,
   res: Response<categories[]>,
-  next: NextFunction
+  next: NextFunction,
 ) => {
+  const user_id = req.user?.id;
+  if (!user_id) {
+    return next(new AppError('User not found.', 400));
+  }
   try {
-    const categories = await prisma.categories.findMany();
+    const categories = await prisma.categories.findMany({
+      where: { user_id },
+    });
     res.status(200).json(categories);
   } catch (err) {
-    return next(new AppError(`Something went wrong. ${err}`, 404));
+    return next(new AppError(`Something went wrong. ${err}`, 500));
   }
 };
 
 //@desc Get categories by id
 //@route GET/api/categories/:id
-export const getSingleCategory = async (
-  req: Request<{ id: string }>,
+export const getCategoryById = async (
+  req: Request<{ id: string; user_id: string }>,
   res: Response<categories | null>,
-  next: NextFunction
+  next: NextFunction,
 ) => {
+  const user_id = req.user?.id;
   const { id } = req.params;
+  if (!id || !user_id) {
+    return next(new AppError('Something went wrong. Missing information', 400));
+  }
   try {
-    const category = await prisma.categories.findFirst({
-      where: { id },
+    const categories = await prisma.categories.findFirst({
+      where: { id, user_id },
     });
-    res.status(200).json(category);
+    res.status(200).json(categories);
   } catch (err) {
     return next(new AppError(`Something went wrong. ${err}`, 500));
   }
@@ -42,26 +51,23 @@ export const getSingleCategory = async (
 //@desc POST category
 //@route POST/api/categories
 export const postCategory = async (
-  req: Request<object, object, CategoryBody>,
+  req: Request<{ user_id: string }, object, CategoryBody>,
   res: Response<categories | null>,
-  next: NextFunction
+  next: NextFunction,
 ) => {
-  const { name, is_private, user_id } = req.body;
-
-  if (!name || user_id == null || is_private == null) {
-    return next(new AppError("Please include all information.", 400));
+  const user_id = req.user?.id;
+  const { name } = req.body;
+  if (!user_id || !name) {
+    return next(new AppError('Something went wrong. Missing information', 400));
   }
   try {
-    const id = v4();
     const category = await prisma.categories.create({
       data: {
-        id,
-        name,
-        is_private,
         user_id,
+        name,
       },
     });
-    res.status(201).json(category);
+    res.status(200).json(category);
   } catch (err) {
     return next(new AppError(`Something went wrong. ${err}`, 500));
   }
@@ -70,69 +76,59 @@ export const postCategory = async (
 //@desc UPDATE category
 //@route PUT/api/categories/:id
 export const updateCategory = async (
-  req: Request<{ id: string }, object, CategoryBody>,
-  res: Response<{ updated: categories }>,
-  next: NextFunction
+  req: Request<{ id: string; user_id: string }, object, CategoryBody>,
+  res: Response<categories | null>,
+  next: NextFunction,
 ) => {
+  const user_id = req.user?.id;
   const { id } = req.params;
-  const { name, is_private, user_id } = req.body;
-  if (!name || !user_id || is_private == null) {
-    return next(new AppError("Please include all information.", 400));
+  const { name } = req.body;
+  if (!user_id || !name || !id) {
+    return next(new AppError('Something went wrong. Missing information', 400));
   }
   try {
-    const existing = await prisma.categories.findFirst({ where: { id } });
+    const existing = await prisma.categories.findFirst({
+      where: { id, user_id },
+    });
     if (!existing) {
-      return next(new AppError("Category not found.", 404));
+      return next(new AppError('Category not found.', 404));
     }
     const updated = await prisma.categories.update({
-      where: { id },
+      where: { id, user_id },
       data: {
         name,
-        user_id,
-        is_private,
       },
     });
-    res.status(200).json({ updated });
+    res.status(200).json(updated);
   } catch (err) {
-    return next(
-      new AppError(`Something went wrong while updating category. ${err}`, 500)
-    );
+    return next(new AppError(`Something went wrong. ${err}`, 500));
   }
 };
 
 //@desc DELETE category
 //@route DELETE/api/categories/:id
 export const deleteCategory = async (
-  req: Request<{ id: string }>,
-  res: Response<{ message: string; category: categories }>,
-  next: NextFunction
+  req: Request<{ user_id: string; id: string }>,
+  res: Response<{ message: string; data: categories }>,
+  next: NextFunction,
 ) => {
+  const user_id = req.user?.id;
   const { id } = req.params;
-
-  if (!id) {
-    return next(new AppError("Please pass necessary information.", 400));
+  if (!user_id || !id) {
+    return next(new AppError('Something went wrong. Missing information', 400));
   }
-
   try {
     const existing = await prisma.categories.findFirst({
-      where: { id },
+      where: { id, user_id },
     });
-
     if (!existing) {
-      return next(new AppError("Category not found.", 404));
+      return next(new AppError('Category not found.', 404));
     }
-
     await prisma.categories.delete({
-      where: { id },
+      where: { user_id, id },
     });
-
-    res.status(200).json({
-      message: "Category deleted successfully",
-      category: existing,
-    });
+    res.status(200).json({ message: 'Succesfully deleted category', data: existing });
   } catch (err) {
-    return next(
-      new AppError(`Something went wrong while deleting category. ${err}`, 500)
-    );
+    return next(new AppError(`Something went wrong while updating maintenance. ${err}`, 500));
   }
 };
