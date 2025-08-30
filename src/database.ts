@@ -1,9 +1,9 @@
-import dotenv from "dotenv";
-import mysql from "mysql2/promise";
+import dotenv from 'dotenv';
+import mysql from 'mysql2/promise';
 
 dotenv.config();
 
-const requiredEnv = ["DB_HOST", "DB_USER", "DB_PASSWORD", "DB_DATABASE"];
+const requiredEnv = ['DB_HOST', 'DB_USER', 'DB_PASSWORD', 'DB_DATABASE'];
 
 for (const env of requiredEnv) {
   if (!process.env[env]) {
