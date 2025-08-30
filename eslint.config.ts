@@ -44,5 +44,5 @@ export default tseslint.config(
       "src/generated/**",
       "src/generated/prisma/**",
     ],
-  }
+  },
 );

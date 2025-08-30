@@ -11,7 +11,7 @@ import { AppError } from "../utils/AppError";
 export const getCategories = async (
   req: Request,
   res: Response<categories[]>,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const categories = await prisma.categories.findMany();
@@ -26,7 +26,7 @@ export const getCategories = async (
 export const getSingleCategory = async (
   req: Request<{ id: string }>,
   res: Response<categories | null>,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const { id } = req.params;
   try {
@@ -44,7 +44,7 @@ export const getSingleCategory = async (
 export const postCategory = async (
   req: Request<object, object, CategoryBody>,
   res: Response<categories | null>,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const { name, is_private, user_id } = req.body;
 
@@ -72,7 +72,7 @@ export const postCategory = async (
 export const updateCategory = async (
   req: Request<{ id: string }, object, CategoryBody>,
   res: Response<{ updated: categories }>,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const { id } = req.params;
   const { name, is_private, user_id } = req.body;
@@ -95,7 +95,7 @@ export const updateCategory = async (
     res.status(200).json({ updated });
   } catch (err) {
     return next(
-      new AppError(`Something went wrong while updating category. ${err}`, 500)
+      new AppError(`Something went wrong while updating category. ${err}`, 500),
     );
   }
 };
@@ -105,7 +105,7 @@ export const updateCategory = async (
 export const deleteCategory = async (
   req: Request<{ id: string }>,
   res: Response<{ message: string; category: categories }>,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const { id } = req.params;
 
@@ -132,7 +132,7 @@ export const deleteCategory = async (
     });
   } catch (err) {
     return next(
-      new AppError(`Something went wrong while deleting category. ${err}`, 500)
+      new AppError(`Something went wrong while deleting category. ${err}`, 500),
     );
   }
 };
