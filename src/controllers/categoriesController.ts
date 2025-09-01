@@ -33,7 +33,8 @@ export const getSingleCategory = async (
     const category = await prisma.categories.findFirst({
       where: { id },
     });
-    res.status(200).json(category);
+    // @ts-expect-error Tets
+    res.status(200).json({ ...category, label: "qwe" });
   } catch (err) {
     return next(new AppError(`Something went wrong. ${err}`, 500));
   }
