@@ -6,16 +6,16 @@ import {
   getMaintenanceEvents,
   postMaintenanceEvent,
   updateMaintenanceEvent,
-} from '../controllers/mainenanceEventsController';
-import { authenticateToken } from '../middleware/authMiddleware';
+} from '../controllers/mainenanceEventsController.js';
+import { authenticateToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 //get all maintenanceEvents
-router.get('/', authenticateToken, getMaintenanceEvents);
+router.get('/:maintenance_id', authenticateToken, getMaintenanceEvents);
 
 //get single maintenanceEvent
-router.get('/:id', authenticateToken, getMaintenanceEvent);
+router.get('/single/:id', authenticateToken, getMaintenanceEvent);
 
 //post maintenanceEvent
 router.post('/', authenticateToken, postMaintenanceEvent);

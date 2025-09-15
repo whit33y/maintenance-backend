@@ -6,8 +6,8 @@ import {
   getCategoryById,
   postCategory,
   updateCategory,
-} from '../controllers/categoriesController';
-import { authenticateToken } from '../middleware/authMiddleware';
+} from '../controllers/categoriesController.js';
+import { authenticateToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 

@@ -1,28 +1,30 @@
+import { reminders } from '@prisma/client';
 import { NextFunction, Request, Response } from 'express';
 
-import { prisma } from '../config/prisma';
-import { reminders } from '../generated/prisma';
-import { RemindersBody } from '../types/reminders-interface';
-import { AppError } from '../utils/AppError';
+import { prisma } from '../config/prisma.js';
+import { RemindersBody, UpdateRemindersBody } from '../types/reminders-interface.js';
+import { AppError } from '../utils/AppError.js';
 
 //@desc Get all reminders
 //@route GET/api/reminders
 export const getReminders = async (
-  req: Request<{ user_id: string }>,
+  req: Request<{ user_id: string; maintenance_id: string }>,
   res: Response<reminders[]>,
   next: NextFunction,
 ) => {
   const user_id = req.user?.id;
-  if (!user_id) {
-    return next(new AppError('User not found.', 400));
+  const { maintenance_id } = req.params;
+  if (!user_id || !maintenance_id) {
+    return next(new AppError('Something went wrong. Missing information', 400));
   }
   try {
-    const reminders = await prisma.reminders.findMany({
+    const reminder = await prisma.reminders.findMany({
       where: {
         user_id,
+        maintenance_id,
       },
     });
-    res.status(200).json(reminders);
+    res.status(200).json(reminder);
   } catch (err) {
     return next(new AppError(`Something went wrong. ${err}`, 500));
   }
@@ -53,40 +55,14 @@ export const getReminder = async (
   }
 };
 
-//@desc GET single reminder
-//@route GET/api/reminders/:maintenance_id
-export const getRemindersMaintenance = async (
-  req: Request<{ user_id: string; maintenance_id: string }>,
-  res: Response<reminders[]>,
-  next: NextFunction,
-) => {
-  const user_id = req.user?.id;
-  const { maintenance_id } = req.params;
-  if (!user_id || !maintenance_id) {
-    return next(new AppError('Something went wrong. Missing information', 400));
-  }
-  try {
-    const reminder = await prisma.reminders.findMany({
-      where: {
-        user_id,
-        maintenance_id,
-      },
-    });
-    res.status(200).json(reminder);
-  } catch (err) {
-    return next(new AppError(`Something went wrong. ${err}`, 500));
-  }
-};
-
 //@desc POST reminder
 //@route POST/api/reminders
 export const postReminder = async (
-  req: Request<{ user_id: string }, object, RemindersBody>,
+  req: Request<object, object, RemindersBody>,
   res: Response<reminders | null>,
   next: NextFunction,
 ) => {
-  const user_id = req.user?.id;
-  const { maintenance_id, due_date, is_sent } = req.body;
+  const { user_id, maintenance_id, due_date, is_sent } = req.body;
   if (!user_id || !maintenance_id || !due_date) {
     return next(new AppError('Something went wrong. Missing information', 400));
   }
@@ -108,7 +84,7 @@ export const postReminder = async (
 //@desc UPDATE reminder
 //@route UPDATE/api/reminders/:id
 export const updateReminder = async (
-  req: Request<{ user_id: string; id: string }, object, RemindersBody>,
+  req: Request<{ user_id: string; id: string }, object, UpdateRemindersBody>,
   res: Response<reminders | null>,
   next: NextFunction,
 ) => {

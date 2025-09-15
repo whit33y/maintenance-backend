@@ -1,9 +1,9 @@
+import { categories } from '@prisma/client';
 import { NextFunction, Request, Response } from 'express';
 
-import { prisma } from '../config/prisma';
-import { categories } from '../generated/prisma';
-import { CategoryBody } from '../types/category-interface';
-import { AppError } from '../utils/AppError';
+import { prisma } from '../config/prisma.js';
+import { CategoryBody } from '../types/category-interface.js';
+import { AppError } from '../utils/AppError.js';
 
 //@desc Get all categories
 //@route GET/api/categories
@@ -19,6 +19,9 @@ export const getCategories = async (
   try {
     const categories = await prisma.categories.findMany({
       where: { user_id },
+      orderBy: {
+        created_at: 'desc',
+      },
     });
     res.status(200).json(categories);
   } catch (err) {
@@ -116,7 +119,6 @@ export const deleteCategory = async (
   const { id } = req.params;
   if (!user_id || !id) {
     return next(new AppError('Something went wrong. Missing information', 400));
-
   }
   try {
     const existing = await prisma.categories.findFirst({

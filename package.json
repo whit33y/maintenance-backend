@@ -1,7 +1,7 @@
 {
   "name": "maintenance-backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/server.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -11,7 +11,9 @@
     "lintci": "eslint . --ext .ts,.tsx",
     "type-check": "tsc --noEmit",
     "prettier:check": "prettier --check .",
-    "prettier:write": "prettier --write ."
+    "prettier:write": "prettier --write .",
+    "start": "node dist/server.js",
+    "postinstall": "prisma generate"
   },
   "keywords": [],
   "author": "",
@@ -27,6 +29,7 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.14.3",
+    "node-cron": "^4.2.1",
     "tsx": "^4.20.5",
     "uuid": "^11.1.0"
   },

@@ -4,22 +4,18 @@ import {
   deleteReminder,
   getReminder,
   getReminders,
-  getRemindersMaintenance,
   postReminder,
   updateReminder,
-} from '../controllers/remindersController';
-import { authenticateToken } from '../middleware/authMiddleware';
+} from '../controllers/remindersController.js';
+import { authenticateToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 //get all reminders
-router.get('/', authenticateToken, getReminders);
+router.get('/:maintenance_id', authenticateToken, getReminders);
 
 //get single reminder
-router.get('/:id', authenticateToken, getReminder);
-
-//get maintenance reminders
-router.get('/maintenance/:maintenance_id', authenticateToken, getRemindersMaintenance);
+router.get('/single/:id', authenticateToken, getReminder);
 
 //post reminder
 router.post('/', authenticateToken, postReminder);

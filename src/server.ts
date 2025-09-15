@@ -2,12 +2,12 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import express, { NextFunction, Request, Response } from 'express';
 
-import auth from './routes/auth';
-import categories from './routes/categories';
-import maintenance from './routes/maintenance';
-import maintenanceEvents from './routes/maintenanceEvents';
-import reminders from './routes/reminders';
-
+import { startCronJobs } from './jobs/cron-jobs.js';
+import auth from './routes/auth.js';
+import categories from './routes/categories.js';
+import maintenance from './routes/maintenance.js';
+import maintenanceEvents from './routes/maintenanceEvents.js';
+import reminders from './routes/reminders.js';
 
 dotenv.config();
 
@@ -34,6 +34,8 @@ app.use((err: Error & { status?: number }, req: Request, res: Response, _next: N
   console.error(err.message);
   res.status(err.status || 500).json({ message: err.message || 'Server error' });
 });
+
+startCronJobs();
 
 app.listen(PORT, () => {
   console.log(`Server working on http://localhost:${PORT}`);

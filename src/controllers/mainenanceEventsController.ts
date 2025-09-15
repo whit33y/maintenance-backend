@@ -1,27 +1,45 @@
+import { maintenance_events, Prisma } from '@prisma/client';
 import { NextFunction, Request, Response } from 'express';
 
-import { prisma } from '../config/prisma';
-import { maintenance_events } from '../generated/prisma';
-import { MaintenanceEventBody } from '../types/maintenance-events-interface';
-import { AppError } from '../utils/AppError';
+import { prisma } from '../config/prisma.js';
+import {
+  MaintenanceEventBody,
+  UpdateMaintenanceEventBody,
+} from '../types/maintenance-events-interface.js';
+import { AppError } from '../utils/AppError.js';
 
 //@desc Get all maintenance events
 //@route GET/api/maintenance-event
 export const getMaintenanceEvents = async (
-  req: Request<{ user_id: string }>,
+  req: Request<{ user_id: string; maintenance_id: string }, object, { is_done?: string }>,
   res: Response<maintenance_events[]>,
   next: NextFunction,
 ) => {
   const user_id = req.user?.id;
-  if (!user_id) {
-    return next(new AppError('User not found.', 400));
+  const { maintenance_id } = req.params;
+  const { is_done } = req.query;
+
+  if (!user_id || !maintenance_id) {
+    return next(new AppError('Please pass necessary information.', 400));
   }
+
   try {
+    const where: Prisma.maintenance_eventsWhereInput = {
+      user_id,
+      maintenance_id,
+    };
+
+    if (is_done === 'true') {
+      where.completion_date = { not: null };
+    } else if (is_done === 'false') {
+      where.completion_date = null;
+    }
+
     const maintenance_events = await prisma.maintenance_events.findMany({
-      where: {
-        user_id,
-      },
+      where,
+      orderBy: { due_date: 'asc' },
     });
+
     res.status(200).json(maintenance_events);
   } catch (err) {
     return next(new AppError(`Something went wrong. ${err}`, 500));
@@ -53,12 +71,11 @@ export const getMaintenanceEvent = async (
 //@desc POST maintenance event
 //@route POST/api/maintenance-event
 export const postMaintenanceEvent = async (
-  req: Request<{ user_id: string }, object, MaintenanceEventBody>,
+  req: Request<object, object, MaintenanceEventBody>,
   res: Response<maintenance_events | null>,
   next: NextFunction,
 ) => {
-  const user_id = req.user?.id;
-  const { maintenance_id, completion_date, notes } = req.body;
+  const { user_id, maintenance_id, due_date, completion_date, notes } = req.body;
   if (!user_id || !maintenance_id) {
     return next(new AppError('Please pass necessary information.', 400));
   }
@@ -67,6 +84,7 @@ export const postMaintenanceEvent = async (
       data: {
         user_id,
         maintenance_id,
+        due_date,
         completion_date,
         notes,
       },
@@ -81,14 +99,14 @@ export const postMaintenanceEvent = async (
 //@desc UPDATE maintenance event
 //@route UPDATE/api/maintenance-event/:id
 export const updateMaintenanceEvent = async (
-  req: Request<{ user_id: string; id: string }, object, MaintenanceEventBody>,
+  req: Request<{ user_id: string; id: string }, object, UpdateMaintenanceEventBody>,
   res: Response<maintenance_events | null>,
   next: NextFunction,
 ) => {
   const user_id = req.user?.id;
-  const { maintenance_id, completion_date, notes } = req.body;
+  const { completion_date, notes } = req.body;
   const { id } = req.params;
-  if (!user_id || !maintenance_id || !id) {
+  if (!user_id || !id) {
     return next(new AppError('Please pass necessary information.', 400));
   }
   try {
@@ -107,8 +125,6 @@ export const updateMaintenanceEvent = async (
         user_id,
       },
       data: {
-        user_id,
-        maintenance_id,
         completion_date,
         notes,
       },
