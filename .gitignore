@@ -6,5 +6,6 @@ node_modules/
 Thumbs.db
 .DS_Store
 /src/generated/prisma
-
+dist
+prisma/migrations
 *.txt

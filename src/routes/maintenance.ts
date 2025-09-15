@@ -7,8 +7,8 @@ import {
   getMaintenancesByCategory,
   postMaintenance,
   updateMaintenance,
-} from '../controllers/maintenanceController';
-import { authenticateToken } from '../middleware/authMiddleware';
+} from '../controllers/maintenanceController.js';
+import { authenticateToken } from '../middleware/authMiddleware.js';
 const router = express.Router();
 
 //get all maintenances

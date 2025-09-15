@@ -3,10 +3,10 @@ import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { v4 } from 'uuid';
 
-import { env } from '../config/env';
-import { prisma } from '../config/prisma';
-import { LoginBody, RegisterBody } from '../types/auth-interface';
-import { AppError } from '../utils/AppError';
+import { env } from '../config/env.js';
+import { prisma } from '../config/prisma.js';
+import { LoginBody, RegisterBody } from '../types/auth-interface.js';
+import { AppError } from '../utils/AppError.js';
 
 export const register = async (
   req: Request<object, object, RegisterBody>,

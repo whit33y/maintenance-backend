@@ -1,9 +1,9 @@
+import { maintenance } from '@prisma/client';
 import { NextFunction, Request, Response } from 'express';
 
-import { prisma } from '../config/prisma';
-import { maintenance } from '../generated/prisma';
-import { MaintenanceBody } from '../types/maintenance-interface';
-import { AppError } from '../utils/AppError';
+import { prisma } from '../config/prisma.js';
+import { MaintenanceBody } from '../types/maintenance-interface.js';
+import { AppError } from '../utils/AppError.js';
 
 //@desc Get all maintenance
 //@route GET/api/maintenance
@@ -19,6 +19,9 @@ export const getMaintenances = async (
   try {
     const maintenances = await prisma.maintenance.findMany({
       where: { user_id },
+      orderBy: {
+        created_at: 'asc',
+      },
     });
     res.status(200).json(maintenances);
   } catch (err) {
@@ -67,6 +70,9 @@ export const getMaintenancesByCategory = async (
   try {
     const maintenances = await prisma.maintenance.findMany({
       where: { category_id, user_id },
+      orderBy: {
+        created_at: 'asc',
+      },
     });
     res.status(200).json(maintenances);
   } catch (err) {
