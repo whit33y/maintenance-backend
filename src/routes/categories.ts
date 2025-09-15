@@ -13,17 +13,16 @@ const router = express.Router();
 
 //get all categories
 router.get('/', authenticateToken, getCategories);
-
-// //get single category
+//get single category
 router.get('/:id', authenticateToken, getCategoryById);
 
-// //post category
+//post category
 router.post('/', authenticateToken, postCategory);
 
-// //put category
+//put category
 router.put('/:id', authenticateToken, updateCategory);
 
-// //delete category
+//delete category
 router.delete('/:id', authenticateToken, deleteCategory);
 
 export default router;

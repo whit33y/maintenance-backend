@@ -42,6 +42,10 @@ export const getMaintenanceById = async (
     const maintenance = await prisma.maintenance.findFirst({
       where: { id, user_id },
     });
+
+    if (!maintenance) {
+      return next(new AppError('Maintenance not found.', 404));
+    }
     res.status(200).json(maintenance);
   } catch (err) {
     return next(new AppError(`Something went wrong. ${err}`, 500));

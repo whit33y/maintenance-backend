@@ -116,6 +116,7 @@ export const deleteCategory = async (
   const { id } = req.params;
   if (!user_id || !id) {
     return next(new AppError('Something went wrong. Missing information', 400));
+
   }
   try {
     const existing = await prisma.categories.findFirst({
