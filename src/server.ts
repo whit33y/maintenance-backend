@@ -15,7 +15,7 @@ const app = express();
 app.use(
   cors({
     origin: process.env.ORIGIN,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   }),
 );
@@ -38,5 +38,5 @@ app.use((err: Error & { status?: number }, req: Request, res: Response, _next: N
 startCronJobs();
 
 app.listen(PORT, () => {
-  console.log(`Server working on http://localhost:${PORT}`);
+  console.log(`Server working on ${PORT}`);
 });
