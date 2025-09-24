@@ -10,6 +10,23 @@ import { AppError } from '../utils/AppError.js';
 
 //@desc Get all maintenance events
 //@route GET/api/maintenance-event
+export const getAllMaintenanceEvents = async (
+  req: Request<{ user_id: string }>,
+  res: Response<maintenance_events[]>,
+  next: NextFunction,
+) => {
+  const user_id = req.user?.id;
+  try {
+    const maintenance_event = await prisma.maintenance_events.findMany({
+      where: { user_id },
+    });
+    res.status(200).json(maintenance_event);
+  } catch (err) {
+    return next(new AppError(`Something went wrong. ${err}`, 500));
+  }
+};
+//@desc Get all maintenance events by id
+//@route GET/api/maintenance-event/:maintenance_id
 export const getMaintenanceEvents = async (
   req: Request<{ user_id: string; maintenance_id: string }, object, { is_done?: string }>,
   res: Response<maintenance_events[]>,

@@ -88,5 +88,5 @@ const runMaintenanceJobs = async () => {
 };
 
 export const startCronJobs = () => {
-  cron.schedule('0,15 * * * *', runMaintenanceJobs);
+  cron.schedule('0,5 * * * *', runMaintenanceJobs);
 };

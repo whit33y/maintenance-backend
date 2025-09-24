@@ -2,6 +2,7 @@ import express from 'express';
 
 import {
   deleteMaintenanceEvent,
+  getAllMaintenanceEvents,
   getMaintenanceEvent,
   getMaintenanceEvents,
   postMaintenanceEvent,
@@ -12,6 +13,9 @@ import { authenticateToken } from '../middleware/authMiddleware.js';
 const router = express.Router();
 
 //get all maintenanceEvents
+router.get('/', authenticateToken, getAllMaintenanceEvents);
+
+//get all maintenanceEvents by id
 router.get('/:maintenance_id', authenticateToken, getMaintenanceEvents);
 
 //get single maintenanceEvent
