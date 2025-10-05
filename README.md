@@ -28,6 +28,6 @@ Live preview: [https://maintenance-frontend-black.vercel.app/](https://maintenan
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/whit33y/maintenance-frontend
+   git clone https://github.com/whit33y/maintenance-backend
    cd maintenance-frontend
    ```
